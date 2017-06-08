@@ -1,4 +1,4 @@
-package edu.bupt.tao.algorithms;
+package edu.bupt.tao.graph.base_algorithms;
 
 /**
  * Created by Gao Tao on 2017/5/31.
