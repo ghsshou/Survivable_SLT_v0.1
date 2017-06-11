@@ -5,6 +5,7 @@ package edu.bupt.tao.graph.edu.bupt.tao.graph.resource;
 public class Resource {
 
 	public static final int SLOTS_NO = 190;
+	public double weight;
 	public Slot[] slots;
 	private int slots_empty_num = SLOTS_NO;
 	

@@ -5,11 +5,12 @@ public class ModulationFormat {
 	int level;
 	double distance;
 	double capacity;
+	public double BasicCapacity = 12.5;
 	public ModulationFormat(String name, int level, double distance) {
 		this.name = name;
 		this.level = level;
 		this.distance = distance;
-		this.capacity = ModulationSet.BasicCapacity * level;
+		this.capacity = BasicCapacity * level;
 		// TODO Auto-generated constructor stub
 	}
 

@@ -9,13 +9,13 @@ public class Slot {
     int occupy_type;//occupy 1 or reserve 0
 
     public Slot(){
-        this.use_state = 1;
+        this.use_state = true;
         this.traffic_id = -1;
         this.occupy_type = -1;
     }
 
     public void setSlot_free(){
-        this.use_state = 1;
+        this.use_state = true;
         this.traffic_id = -1;
         this.occupy_type = -1;
     }

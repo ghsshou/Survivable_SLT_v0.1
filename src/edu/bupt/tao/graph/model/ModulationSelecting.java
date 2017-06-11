@@ -1,5 +1,6 @@
 package edu.bupt.tao.graph.model;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -7,8 +8,7 @@ import java.util.Map;
  */
 public class ModulationSelecting {
     public Map<Integer,ModulationFormat> ModulationFormats = new HashMap<Integer,ModulationFormat>();
-    public double BasicCapacity = 12.5;
-    public ModulationSet(){
+    public ModulationSelecting(){
         ModulationFormats.put(1,new ModulationFormat("BPSK", 1, 2400));
         ModulationFormats.put(2,new ModulationFormat("QPSK", 2, 1200));
         ModulationFormats.put(3,new ModulationFormat("8QAM", 3, 600));
@@ -16,8 +16,20 @@ public class ModulationSelecting {
     }
 
     public double generate_Smn(int m, int n){
+        if(m == 0)
+            return -1;
         return ModulationFormats.get(m).getDistance() / (Math.log10(n) + 1);
     }
+    public int modulation_select(double dis){
+        double sm_1;
+        for(int m = ModulationFormats.size(); m >= 1; m--){
+            if(generate_Smn(m,1) >= dis)
+                return m;
+        }
+        return -1;
+
+    }
+
 
 
 

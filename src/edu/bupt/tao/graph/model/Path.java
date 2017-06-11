@@ -103,6 +103,10 @@ public class Path implements BaseElementWithWeight,Comparable<Path>
 	{
 		return _vertex_list;
 	}
+
+	public BaseVertex get_src(){
+		return _vertex_list.get(0);
+	}
 	
 	
 	
@@ -146,8 +150,11 @@ public class Path implements BaseElementWithWeight,Comparable<Path>
 	@Override
 	public int compareTo(Path o) {
 		// TODO Auto-generated method stub
-		if(this._weight > o._weight)
+		if(o == null)
 			return 1;
-		return 0;
+		int delta = (int) (this._weight - o.get_weight());
+		if(delta == 0)
+			delta = this.getHop() - o .getHop();
+		return delta;
 	}
 }
