@@ -6,11 +6,16 @@ import edu.bupt.tao.traffic_SSLT.basic_model.Multicast_Graph;
 import edu.bupt.tao.traffic_SSLT.basic_model.Multicast_Request;
 import edu.bupt.tao.traffic_SSLT.basic_model.Multicast_Service;
 
+import java.util.logging.Logger;
+
+
 /**
  * Created by Gao Tao on 2017/6/11.
  */
 public class test_main {
     public static void main(String[] args) {
+//        Logger logger = new Logger();
+//        logger.log(0,"test");
         Multicast_Graph multicast_graph = new Multicast_Graph("data/cost239");
         Datacenter dc1 = new Datacenter(multicast_graph.get_vertex(3),100);
         Datacenter dc2 = new Datacenter(multicast_graph.get_vertex(4),200);
@@ -25,7 +30,7 @@ public class test_main {
         multicast_service_1.addCopyToDC(dc3);
         multicast_graph.addMulticast_services(multicast_service_1);
 
-        int[] req_users = new int[]{1, 5, 10, 9};
+        int[] req_users = new int[]{1, 5, 10, 9, 2, 6, 7};
         Multicast_Request multicast_request = new Multicast_Request(0,0,req_users,30);
         User_Grouping user_grouping = new User_Grouping(multicast_graph,multicast_request);
         user_grouping.grouping_algo1();
