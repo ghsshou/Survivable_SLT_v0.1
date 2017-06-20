@@ -30,7 +30,7 @@ public class ModulationSelecting {
 
     }
     public double get_capacity(int level){
-        return ModulationFormats.get(m).getCapacity();
+        return ModulationFormats.get(level).getCapacity();
     }
 
 
