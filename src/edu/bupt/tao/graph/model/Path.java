@@ -45,6 +45,7 @@ public class Path implements BaseElementWithWeight,Comparable<Path>
 {
 	List<BaseVertex> _vertex_list = new Vector<BaseVertex>();
 	double _weight = -1;
+	double cost = -1;
 	int hop;
 	int startSlots;
 	int useSlots;
@@ -53,17 +54,19 @@ public class Path implements BaseElementWithWeight,Comparable<Path>
 	double latency;	
 	static double switchLatency = 8;//the switch time,ms
 	static double transSpeed = 193.121; //in km
-	
-	
+
+
 	public Path(){};
-	
+	//by Tao
 	public Path(List<BaseVertex> _vertex_list, double _weight)
 	{
 		this._vertex_list = _vertex_list;
+
 		this._weight = _weight;
-		hop = _vertex_list.size() - 1; 
+		hop = _vertex_list.size() - 1;
 		latency = switchLatency * hop + _weight / transSpeed;
 	}
+
 
 	public double get_weight()
 	{
@@ -107,9 +110,12 @@ public class Path implements BaseElementWithWeight,Comparable<Path>
 	public BaseVertex get_src(){
 		return _vertex_list.get(0);
 	}
-	
-	
-	
+
+	public void setCost(double cost) {
+		this.cost = cost;
+	}
+
+
 	public int getHop() {
 		return hop;
 	}
@@ -144,7 +150,7 @@ public class Path implements BaseElementWithWeight,Comparable<Path>
 	
 	public String toString()
 	{
-		return _vertex_list.toString()+":" + "distance: " +_weight+",hop:"+hop + ",m: " + modulationLevel + ",start: " + startSlots + ",useNum: " + useSlots;
+		return _vertex_list.toString()+":" + "distance: " +_weight+",hop:"+hop + ",cost:" + cost + ",m: " + modulationLevel + ",start: " + startSlots + ",useNum: " + useSlots;
 	}
 
 	@Override

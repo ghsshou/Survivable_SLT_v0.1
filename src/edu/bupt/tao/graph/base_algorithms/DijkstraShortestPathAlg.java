@@ -101,9 +101,9 @@ public class DijkstraShortestPathAlg
 	 * 
 	 * @param root
 	 */
-	public void get_shortest_path_tree(BaseVertex root)
+	public void get_shortest_path_tree(BaseVertex root, boolean use_cost)
 	{
-		determine_shortest_paths(root, null, true);
+		determine_shortest_paths(root, null, true, use_cost);
 	}
 	
 	/**
@@ -112,16 +112,16 @@ public class DijkstraShortestPathAlg
 	 * 
 	 * @param root
 	 */
-	public void get_shortest_path_flower(BaseVertex root)
+	public void get_shortest_path_flower(BaseVertex root, boolean use_cost)
 	{
-		determine_shortest_paths(null, root, false);
+		determine_shortest_paths(null, root, false, use_cost);
 	}
 	
 	/**
 	 * Do the work
 	 */
 	protected void determine_shortest_paths(BaseVertex source_vertex, 
-			BaseVertex sink_vertex, boolean is_source2sink)
+			BaseVertex sink_vertex, boolean is_source2sink, boolean use_cost)
 	{
 		// 0. clean up variables
 		clear();
@@ -142,7 +142,7 @@ public class DijkstraShortestPathAlg
 
 			_determined_vertex_set.add(cur_candidate);
 
-			_improve_to_vertex(cur_candidate, is_source2sink);
+			_improve_to_vertex(cur_candidate, is_source2sink, use_cost);
 		}
 	}
 
@@ -150,7 +150,7 @@ public class DijkstraShortestPathAlg
 	 * Update the distance from the source to the concerned vertex.
 	 * @param vertex
 	 */
-	private void _improve_to_vertex(BaseVertex vertex, boolean is_source2sink)
+	private void _improve_to_vertex(BaseVertex vertex, boolean is_source2sink, boolean w_cost)
 	{
 		// 1. get the neighboring vertices 
 		Set<BaseVertex> neighbor_vertex_list = is_source2sink ? 
@@ -165,12 +165,18 @@ public class DijkstraShortestPathAlg
 			// 2.2 calculate the new distance
 			double distance = _start_vertex_distance_index.containsKey(vertex)?
 					_start_vertex_distance_index.get(vertex) : Graph.DISCONNECTED;
-					
-			distance += is_source2sink ? _graph.get_edge_weight(vertex, cur_adjacent_vertex)
-					: _graph.get_edge_weight(cur_adjacent_vertex, vertex);
+			if(w_cost){
+				distance += is_source2sink ? _graph.get_edge_cost(vertex, cur_adjacent_vertex)
+						: _graph.get_edge_cost(cur_adjacent_vertex, vertex);
+			}
+			else{
+				distance += is_source2sink ? _graph.get_edge_weight(vertex, cur_adjacent_vertex)
+						: _graph.get_edge_weight(cur_adjacent_vertex, vertex);
+			}
+
 
 			// 2.3 update the distance if necessary
-			if(!_start_vertex_distance_index.containsKey(cur_adjacent_vertex) 
+			if(!_start_vertex_distance_index.containsKey(cur_adjacent_vertex)
 			|| _start_vertex_distance_index.get(cur_adjacent_vertex) > distance)
 			{
 				_start_vertex_distance_index.put(cur_adjacent_vertex, distance);
@@ -191,9 +197,9 @@ public class DijkstraShortestPathAlg
 	 * @param sink_vertex
 	 * @return
 	 */
-	public Path get_shortest_path(BaseVertex source_vertex, BaseVertex sink_vertex)
+	public Path get_shortest_path(BaseVertex source_vertex, BaseVertex sink_vertex, boolean use_cost)
 	{
-		determine_shortest_paths(source_vertex, sink_vertex, true);
+		determine_shortest_paths(source_vertex, sink_vertex, true, use_cost);
 		//
 		List<BaseVertex> vertex_list = new Vector<BaseVertex>();
 		double weight = _start_vertex_distance_index.containsKey(sink_vertex) ?  
@@ -210,7 +216,30 @@ public class DijkstraShortestPathAlg
 			Collections.reverse(vertex_list);
 		}
 		//
-		return new Path(vertex_list, weight);
+		BaseVertex src;
+		BaseVertex dst;
+		int index = 0;
+		double total_weight_or_cost = 0;
+		do{
+			src = vertex_list.get(index);
+			dst = vertex_list.get(index + 1);
+			if(use_cost){
+				total_weight_or_cost += this._graph.get_edge_weight(src, dst);
+			}
+			else{
+				total_weight_or_cost += this._graph.get_edge_cost(src, dst);
+			}
+			index ++;
+		}while(index < vertex_list.size() - 1);
+		Path p = new Path(vertex_list, weight);
+		if(use_cost){
+			p.setCost(p.get_weight());
+			p.set_weight(total_weight_or_cost);
+		}
+		else{
+			p.setCost(total_weight_or_cost);
+		}
+		return p;
 	}
 	
 	/// for updating the cost
@@ -222,7 +251,7 @@ public class DijkstraShortestPathAlg
 	 * 
 	 * @param vertex
 	 */
-	public Path update_cost_forward(BaseVertex vertex)
+	public Path update_cost_forward(BaseVertex vertex, boolean w_cost)
 	{
 		double cost = Graph.DISCONNECTED;
 		
@@ -243,7 +272,14 @@ public class DijkstraShortestPathAlg
 					_start_vertex_distance_index.get(cur_vertex) : Graph.DISCONNECTED;
 					
 			// 3.2 calculate the distance from the root to the input vertex
-			distance += _graph.get_edge_weight(vertex, cur_vertex);
+			if(w_cost){
+				distance += _graph.get_edge_cost(vertex, cur_vertex);
+			}
+			else
+			{
+				distance += _graph.get_edge_weight(vertex, cur_vertex);
+			}
+
 			//distance += ((VariableGraph)_graph).get_edge_weight_of_graph(vertex, cur_vertex);
 			
 			// 3.3 update the distance if necessary 
@@ -282,7 +318,7 @@ public class DijkstraShortestPathAlg
 	 * 
 	 * @param vertex
 	 */
-	public void correct_cost_backward(BaseVertex vertex)
+	public void correct_cost_backward(BaseVertex vertex, boolean use_cost)
 	{
 		// 1. initialize the list of vertex to be updated
 		List<BaseVertex> vertex_list = new LinkedList<BaseVertex>();
@@ -299,8 +335,14 @@ public class DijkstraShortestPathAlg
 			{
 				double cost_of_pre_vertex = _start_vertex_distance_index.containsKey(pre_vertex) ?
 						_start_vertex_distance_index.get(pre_vertex) : Graph.DISCONNECTED;
-						
-				double fresh_cost = cost_of_cur_vertex + _graph.get_edge_weight(pre_vertex, cur_vertex);
+				double fresh_cost;
+				if(use_cost){
+					fresh_cost = cost_of_cur_vertex + _graph.get_edge_cost(pre_vertex, cur_vertex);
+
+				}
+				else{
+					fresh_cost = cost_of_cur_vertex + _graph.get_edge_weight(pre_vertex, cur_vertex);
+				}
 				//double fresh_cost = cost_of_cur_vertex + ((VariableGraph)_graph).get_edge_weight_of_graph(pre_vertex, cur_vertex);
 				if(cost_of_pre_vertex > fresh_cost)
 				{

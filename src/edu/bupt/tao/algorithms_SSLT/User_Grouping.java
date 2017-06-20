@@ -4,16 +4,19 @@ import edu.bupt.tao.content_graph.edu.bupt.tao.content_graph.model.Datacenter;
 import edu.bupt.tao.graph.base_algorithms.DijkstraShortestPathAlg;
 import edu.bupt.tao.graph.model.ModulationSelecting;
 import edu.bupt.tao.graph.model.Path;
-import edu.bupt.tao.traffic_SSLT.basic_model.Multicast_Graph;
+import edu.bupt.tao.edu.bupt.tao.graph_SSLT.Multicast_Graph;
 import edu.bupt.tao.traffic_SSLT.basic_model.Multicast_Request;
 
-import javax.xml.crypto.Data;
+
 import java.util.*;
 
 /**
  * Created by Gao Tao on 2017/6/8.
  */
 public class User_Grouping {
+
+
+
     Multicast_Graph mr_Graph;
     Multicast_Request mr;
     DijkstraShortestPathAlg dspa;
@@ -26,6 +29,7 @@ public class User_Grouping {
         this.mr = mr;
         dspa = new DijkstraShortestPathAlg(this.mr_Graph);
         user_group = new HashMap<>();
+
     }
     //stores the info for each user and its paths to different dcs
     class User_Path implements Comparable<User_Path> {
@@ -61,7 +65,7 @@ public class User_Grouping {
             Iterator<Datacenter> it = dcs_w_ms.iterator();
             List<Path> paths = new ArrayList<Path>();
             while (it.hasNext()){
-                Path path = dspa.get_shortest_path(it.next().vertex, mr_Graph.get_vertex(i));
+                Path path = dspa.get_shortest_path(it.next().vertex, mr_Graph.get_vertex(i), false);
                 paths.add(path);
             }
             Collections.sort(paths);
@@ -94,12 +98,13 @@ public class User_Grouping {
                     break;
                 System.out.println("------------------------------------");
                 System.out.println("USER ID: " + user_path.user);
-                boolean path_can_use = true;
+                boolean next_path_can_use = true;
                 for(Path path : user_path.paths){
                     Datacenter dc = this.mr_Graph.getDcs().get(path.get_src());
                     User_Group_Info ugi = null;
+                    System.out.println("Value i:" + i);
+                    if(user_group_UG.get(dc).size() >= i){
 
-                    if(user_group_UG.get(dc).size() == i){
                         ugi = user_group_UG.get(dc).get(i-1);
                         System.out.println("UGI ML: " + ugi.modulation_level);
                         System.out.println("S_mn: " + modulationSelecting.generate_Smn(ugi.modulation_level, ugi.users.size() + 1));
@@ -112,30 +117,29 @@ public class User_Grouping {
                             System.out.println("Existed group:" + ugi.dc.vertex.get_id() + " index: " + ugi.index);
                             break;
                         }
+                        //if the ML degradation of current path is smaller than that of next path
                         else {
                             Path path_1 = path;
                             Path path_2 = null;
                             int path_index = user_path.paths.indexOf(path_1);
+                            //if path_2 exists
                             if(path_index != user_path.paths.size() - 1){
                                 path_2 = user_path.paths.get(path_index + 1);
 
                             }
                             if(judge_modulation(path_1, path_2, ugi)){
                                 System.out.println("Path 1 is smaller");
-                                if(user_path.paths.indexOf(path_2) == user_path.paths.size() - 1){
-                                    System.out.println("Last path");
-                                    path_can_use = false;
-                                    continue;
-                                }
+                                next_path_can_use = false;
 
-
+                            }else{
+                                next_path_can_use = true;
                             }
 
                         }
 
 
                     }
-                    else if(path_can_use){
+                    else if(next_path_can_use){
                         System.out.println("Create new Group");
                         ugi = new User_Group_Info(dc, i);
                         ugi.users.add(user_path.user);

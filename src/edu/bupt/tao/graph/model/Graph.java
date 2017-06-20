@@ -31,6 +31,7 @@
 
 package edu.bupt.tao.graph.model;
 
+import edu.bupt.tao.graph.edu.bupt.tao.graph.resource.Slot;
 import edu.bupt.tao.graph.model.abstracts.BaseGraph;
 import edu.bupt.tao.graph.model.abstracts.BaseVertex;
 import edu.bupt.tao.graph.edu.bupt.tao.graph.resource.Resource;
@@ -62,7 +63,10 @@ public class Graph implements BaseGraph
 	// index for edge weights in the graph
 	protected Map<Pair<Integer, Integer>, Resource> _vertex_pair_weight_index = 
 		new HashMap<Pair<Integer,Integer>, Resource>();
-	
+
+
+
+
 	// index for vertices in the graph
 	protected Map<Integer, BaseVertex> _id_vertex_index = 
 		new HashMap<Integer, BaseVertex>();
@@ -83,9 +87,9 @@ public class Graph implements BaseGraph
 	 * Constructor 1 
 	 * @param data_file_name
 	 */
-	public Graph(final String data_file_name)
+	public Graph(final String data_file_name, boolean w_cost)
 	{
-		import_from_file(data_file_name);
+		import_from_file(data_file_name, w_cost);
 	}
 	
 	/**
@@ -130,7 +134,8 @@ public class Graph implements BaseGraph
 	 *  
 	 * @param data_file_name
 	 */
-	public void import_from_file(final String data_file_name)
+	//if w_cost == true, the file read includes the values of cost
+	public void import_from_file(final String data_file_name, boolean w_cost)
 	{
 		// 0. Clear the variables 
 		clear();
@@ -177,9 +182,13 @@ public class Graph implements BaseGraph
 					int start_vertex_id = Integer.parseInt(str_list[0]);
 					int end_vertex_id = Integer.parseInt(str_list[1]);
 					double weight = Double.parseDouble(str_list[2]);
-					add_edge(start_vertex_id, end_vertex_id, weight);
+					double cost = 1;
+					if(w_cost) {
+						cost = Double.parseDouble(str_list[3]);
+					}
+					add_edge(start_vertex_id, end_vertex_id, weight, cost);
 					
-					add_edge(end_vertex_id, start_vertex_id, weight);//george
+					add_edge(end_vertex_id, start_vertex_id, weight, cost);//george
 					_pair_list.add(new Pair(start_vertex_id,end_vertex_id));
 				}
 				//
@@ -202,7 +211,7 @@ public class Graph implements BaseGraph
 	 * @param end_vertex_id
 	 * @param weight
 	 */
-	public void add_edge(int start_vertex_id, int end_vertex_id, double weight)
+	public void add_edge(int start_vertex_id, int end_vertex_id, double weight, double cost)
 	//protected void add_edge(int start_vertex_id, int end_vertex_id, double weight)
 	{
 		// actually, we should make sure all vertices ids must be correct. 
@@ -235,6 +244,11 @@ public class Graph implements BaseGraph
 		// store the new edge 
 		Resource rs = new Resource();
 		rs.weight = weight;
+		rs.cost = cost;
+		rs.slots = new Slot[rs.SLOTS_NO];
+		for(int i = 0; i < rs.SLOTS_NO; i++){
+			rs.slots[i] = new Slot();
+		}
 		rs.setStart_index(start_vertex_id);
 		rs.setEnd_index(end_vertex_id);
 		
@@ -359,6 +373,14 @@ public class Graph implements BaseGraph
 							_vertex_pair_weight_index.get(
 									new Pair<Integer, Integer>(source.get_id(), sink.get_id())).weight 
 						  : DISCONNECTED;
+	}
+	//Tao
+	public double get_edge_cost(BaseVertex source, BaseVertex sink){
+		return _vertex_pair_weight_index.containsKey(
+				new Pair<Integer, Integer>(source.get_id(), sink.get_id())) ?
+				_vertex_pair_weight_index.get(
+						new Pair<Integer, Integer>(source.get_id(), sink.get_id())).cost
+				: DISCONNECTED;
 	}
 
 	/**

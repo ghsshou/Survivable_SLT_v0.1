@@ -20,7 +20,7 @@ public class ContentGraph extends VariableGraph {
 		super(graph);
 	}
 	public ContentGraph(String data_file_name) {
-		super(data_file_name);
+		super(data_file_name, false);
 	}
 
 	
@@ -67,7 +67,7 @@ public class ContentGraph extends VariableGraph {
 		for(BaseVertex v: this.get_vertex_list()){
 			if(!this.isDC(v.get_id())){
 				for(Datacenter d: dcList){
-					Path path = dspa.get_shortest_path(v, d.vertex);
+					Path path = dspa.get_shortest_path(v, d.vertex, false);
 					paths.add(path);
 //					System.out.println(path);
 					if(hop > path.getHop()){

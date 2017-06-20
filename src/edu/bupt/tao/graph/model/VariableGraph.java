@@ -56,9 +56,9 @@ public class VariableGraph extends Graph
 	 * 
 	 * @param data_file_name
 	 */
-	public VariableGraph(String data_file_name)
+	public VariableGraph(String data_file_name, boolean w_cost)
 	{
-		super(data_file_name);
+		super(data_file_name, w_cost);
 	}
 	
 	/**
@@ -149,6 +149,20 @@ public class VariableGraph extends Graph
 			return Graph.DISCONNECTED;
 		}
 		return super.get_edge_weight(source, sink);
+	}
+	//by Tao
+
+	public double get_edge_cost(BaseVertex source, BaseVertex sink)
+	{
+		int source_id = source.get_id();
+		int sink_id = sink.get_id();
+
+		if(_rem_vertex_id_set.contains(source_id) || _rem_vertex_id_set.contains(sink_id)
+				|| _rem_edge_set.contains(new Pair<Integer, Integer>(source_id, sink_id)))
+		{
+			return Graph.DISCONNECTED;
+		}
+		return super.get_edge_cost(source, sink);
 	}
 
 	/**
@@ -262,7 +276,7 @@ public class VariableGraph extends Graph
 	{
 		System.out.println("Welcome to the class VariableGraph!");
 		
-		VariableGraph graph = new VariableGraph("data/test_50");
+		VariableGraph graph = new VariableGraph("data/test_50", false);
 		graph.remove_vertex(13);
 		graph.remove_vertex(12);
 		graph.remove_vertex(10);
@@ -273,6 +287,6 @@ public class VariableGraph extends Graph
 		graph.remove_vertex(3);
 		graph.remove_edge(new Pair<Integer, Integer>(26, 41));
 		DijkstraShortestPathAlg alg = new DijkstraShortestPathAlg(graph);
-		System.out.println(alg.get_shortest_path(graph.get_vertex(0), graph.get_vertex(20)));
+		System.out.println(alg.get_shortest_path(graph.get_vertex(0), graph.get_vertex(20), false));
 	}
 }

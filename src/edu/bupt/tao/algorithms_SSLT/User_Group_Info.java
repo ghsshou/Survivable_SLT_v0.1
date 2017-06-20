@@ -32,4 +32,15 @@ public class User_Group_Info {
     public void setModulation_level(int modulation_level) {
         this.modulation_level = modulation_level;
     }
+
+    @Override
+    public String toString() {
+        return "User_Group_Info{" +
+                "dc=" + dc +
+                ", index=" + index +
+                ", users=" + users +
+                ", modulation_level=" + modulation_level +
+                ", longest_dis=" + longest_dis +
+                '}';
+    }
 }

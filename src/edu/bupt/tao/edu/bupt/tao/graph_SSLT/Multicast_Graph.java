@@ -1,4 +1,4 @@
-package edu.bupt.tao.traffic_SSLT.basic_model;
+package edu.bupt.tao.edu.bupt.tao.graph_SSLT;
 
 
 import edu.bupt.tao.content_graph.edu.bupt.tao.content_graph.model.Content;
@@ -9,6 +9,7 @@ import edu.bupt.tao.graph.model.Pair;
 import edu.bupt.tao.graph.model.Path;
 import edu.bupt.tao.graph.model.VariableGraph;
 import edu.bupt.tao.graph.model.abstracts.BaseVertex;
+import edu.bupt.tao.traffic_SSLT.basic_model.Multicast_Service;
 
 import java.util.*;
 
@@ -26,8 +27,8 @@ public class Multicast_Graph extends VariableGraph {
     public Multicast_Graph(Graph graph) {
         super(graph);
     }
-    public Multicast_Graph(String data_file_name) {
-        super(data_file_name);
+    public Multicast_Graph(String data_file_name, boolean w_cost) {
+        super(data_file_name, w_cost);
     }
 
 

@@ -6,6 +6,7 @@ public class Resource {
 
 	public static final int SLOTS_NO = 190;
 	public double weight;
+	public double cost;//by Tao, 6/20/2017
 	public Slot[] slots;
 	private int slots_empty_num = SLOTS_NO;
 	
