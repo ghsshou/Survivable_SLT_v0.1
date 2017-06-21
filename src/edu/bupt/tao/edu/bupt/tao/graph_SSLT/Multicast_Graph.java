@@ -1,9 +1,11 @@
 package edu.bupt.tao.edu.bupt.tao.graph_SSLT;
 
 
+import edu.bupt.tao.LogRec;
 import edu.bupt.tao.content_graph.edu.bupt.tao.content_graph.model.Content;
 import edu.bupt.tao.content_graph.edu.bupt.tao.content_graph.model.Datacenter;
 import edu.bupt.tao.graph.base_algorithms.DijkstraShortestPathAlg;
+import edu.bupt.tao.graph.edu.bupt.tao.graph.resource.Resource;
 import edu.bupt.tao.graph.model.Graph;
 import edu.bupt.tao.graph.model.Pair;
 import edu.bupt.tao.graph.model.Path;
@@ -50,6 +52,11 @@ public class Multicast_Graph extends VariableGraph {
     public void setMulticast_services(Map<Integer, Multicast_Service> mss) {
         this.multicast_services = mss;
     }
+
+    public Map<Integer, Multicast_Service> getMulticast_services() {
+        return multicast_services;
+    }
+
     public void addMulticast_services(Integer ms_ID, Multicast_Service ms){
         multicast_services.put(ms_ID, ms);
     }
@@ -72,6 +79,26 @@ public class Multicast_Graph extends VariableGraph {
         while(it.hasNext()){
             it.next().printDCs();
         }
+    }
+
+    public Multicast_Graph draw_SWP(Multicast_Graph old_graph, int start_slot, int required_slots){
+        Multicast_Graph multicast_graph = new Multicast_Graph();
+        multicast_graph.get_vertex_list().addAll(old_graph.get_vertex_list());
+        multicast_graph.get_id_vertex_index().putAll(old_graph.get_id_vertex_index());
+        multicast_graph.set_vertex_num(old_graph.get_vertex_num());
+        multicast_graph.setDcs(old_graph.getDcs());
+        multicast_graph.setMulticast_services(old_graph.getMulticast_services());
+        Resource resource;
+        for(int i = 0; i < old_graph.get_pair_list().size(); i++){
+            resource = old_graph.get_vertex_pair_weight_index().get(old_graph.get_pair_list().get(i));
+            if(resource.is_free_from_in(start_slot, required_slots)){
+                multicast_graph.add_edge(resource.getStart_index(), resource.getEnd_index(), resource);
+                multicast_graph.add_edge(resource.getEnd_index(), resource.getStart_index(), resource);
+//                LogRec.log.debug("ADD EDGE!!!");
+            }
+        }
+        return multicast_graph;
+
     }
 
 

@@ -1,5 +1,6 @@
 package edu.bupt.tao.algorithms_SSLT;
 
+import edu.bupt.tao.LogRec;
 import edu.bupt.tao.content_graph.edu.bupt.tao.content_graph.model.Datacenter;
 import edu.bupt.tao.edu.bupt.tao.graph_SSLT.Multicast_Graph;
 import edu.bupt.tao.edu.bupt.tao.graph_SSLT.SpanningTree;
@@ -17,7 +18,7 @@ import java.util.Set;
  * Created by Gao Tao on 2017/6/11.
  */
 public class test_main {
-    public static Logger log = Logger.getLogger("src/log4j.properties3");
+
 
     public static void main(String[] args) {
 
@@ -39,16 +40,26 @@ public class test_main {
 //        Multicast_Request multicast_request = new Multicast_Request(0,0,req_users,30);
 //        User_Grouping user_grouping = new User_Grouping(multicast_graph,multicast_request);
 //        user_grouping.grouping_algo1();
-        Constrained_Steiner_Tree constrained_steiner_tree = new Constrained_Steiner_Tree(multicast_graph);
-//        constrained_steiner_tree.print_tree(constrained_steiner_tree._FloydAlgo());
-        log.info("TEST TREE CONSTRUCTING!!!!!!!");
-        Set<Integer> users = new HashSet<Integer>();
-        users.add(3);
-        users.add(9);
-        users.add(5);
-        users.add(8);
-        SpanningTree spanning_tree = constrained_steiner_tree.get_tree_w_src(0, users, 9999);
-        spanning_tree.print_tree();
+
+//        Constrained_Steiner_Tree constrained_steiner_tree = new Constrained_Steiner_Tree(multicast_graph);
+////        constrained_steiner_tree.print_tree(constrained_steiner_tree._FloydAlgo());
+//        LogRec.log.info("TEST TREE CONSTRUCTING!!!!!!!");
+//        Set<Integer> users = new HashSet<Integer>();
+//        users.add(3);
+//        users.add(9);
+//        users.add(5);
+//        users.add(8);
+//        SpanningTree spanning_tree = constrained_steiner_tree.get_tree_w_src(0, users, 9999);
+//        spanning_tree.print_tree();
+        int[] users = new int[]{1, 5, 10, 9, 2, 6, 7};
+        Multicast_Request test_mr = new Multicast_Request(1,0, users, 50);
+        XXX_Algo_2 algo_2 = new XXX_Algo_2(multicast_graph);
+        algo_2.procedure_for_one_MR(test_mr);
+        algo_2.get_current_resource_utilization();
+        int[] users_2 = new int[]{1, 5, 10, 9, 2, 6, 7};
+        Multicast_Request test_mr_2 = new Multicast_Request(2,0, users, 50);
+        algo_2.procedure_for_one_MR(test_mr_2);
+        algo_2.get_current_resource_utilization();
 
 
 

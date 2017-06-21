@@ -1,6 +1,6 @@
 package edu.bupt.tao.edu.bupt.tao.graph_SSLT;
 
-import edu.bupt.tao.algorithms_SSLT.test_main;
+import edu.bupt.tao.LogRec;
 import edu.bupt.tao.graph.model.Pair;
 import edu.bupt.tao.graph.model.Path;
 import edu.bupt.tao.graph.model.abstracts.BaseVertex;
@@ -16,6 +16,9 @@ import java.util.Set;
 public class SpanningTree {
     List<Path> paths_of_tree;
     double total_cost;
+    int startSlots;
+    int useSlots;
+    int modulationLevel;
     public SpanningTree(){
         paths_of_tree = new ArrayList<Path>();
     }
@@ -27,7 +30,7 @@ public class SpanningTree {
             BaseVertex dst;
             int index = 0;
             if(vertex_list.size() <= 1){
-                test_main.log.error("Path Error! Not Enough Edges!");
+                LogRec.log.error("Path Error! Not Enough Edges!");
             }
             while(index <= vertex_list.size() - 2){
                 src = vertex_list.get(index);
@@ -43,6 +46,30 @@ public class SpanningTree {
         this.paths_of_tree.add(path);
     }
 
+    public void setStartSlots(int startSlots) {
+        this.startSlots = startSlots;
+    }
+
+    public void setUseSlots(int useSlots) {
+        this.useSlots = useSlots;
+    }
+
+    public void setModulationLevel(int modulationLevel) {
+        this.modulationLevel = modulationLevel;
+    }
+
+    public int getStartSlots() {
+        return startSlots;
+    }
+
+    public int getUseSlots() {
+        return useSlots;
+    }
+
+    public int getModulationLevel() {
+        return modulationLevel;
+    }
+
     public List<Path> getPaths_of_tree() {
         return paths_of_tree;
     }
@@ -51,21 +78,14 @@ public class SpanningTree {
         this.total_cost = total_cost;
     }
 
-    @Override
-    public String toString() {
-        return "SpanningTree{" +
-                "paths_of_tree=" + paths_of_tree +
-                ", total_cost=" + total_cost +
-                '}';
-    }
     public void print_tree(){
-        System.out.println("***************Tree Info**************");
-        System.out.println("Total Cost:" + total_cost);
+        System.out.println("-------------Tree Info---------------");
+        System.out.println("Total Cost:" + total_cost + ", start index:" + startSlots + ", used slots:" + useSlots + ", ML:" + modulationLevel);
         for(int i = 0; i < paths_of_tree.size(); i++){
             System.out.println("Branch: " + i);
             System.out.println(paths_of_tree.get(i));
 
         }
-        System.out.println("************Tree Info End*************");
+        System.out.println();
     }
 }

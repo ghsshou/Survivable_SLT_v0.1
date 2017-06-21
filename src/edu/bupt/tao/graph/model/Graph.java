@@ -203,6 +203,10 @@ public class Graph implements BaseGraph
 		}
 	}
 
+	public int get_edge_num() {
+		return _edge_num;
+	}
+
 	/**
 	 * Note that this may not be used externally, because some other members in the class
 	 * should be updated at the same time. 

@@ -7,17 +7,20 @@ public class Slot {
     boolean use_state;//0 denotes used,1 not used
     int traffic_id;//denotes the traffic id to use it
     int occupy_type;//occupy 1 or reserve 0
+    boolean locked;//whether it is locked (temporarily allocated), true is locked, not used now
 
     public Slot(){
         this.use_state = true;
         this.traffic_id = -1;
         this.occupy_type = -1;
+        this.locked = false;
     }
 
     public void setSlot_free(){
         this.use_state = true;
         this.traffic_id = -1;
         this.occupy_type = -1;
+        this.locked = false;
     }
 
     public boolean isUse_state() {
@@ -42,6 +45,14 @@ public class Slot {
 
     public void setOccupy_type(int occupy_type) {
         this.occupy_type = occupy_type;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+
+    public boolean isLocked() {
+        return locked;
     }
 
     @Override

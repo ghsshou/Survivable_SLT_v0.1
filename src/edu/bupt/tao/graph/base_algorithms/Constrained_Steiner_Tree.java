@@ -1,5 +1,6 @@
 package edu.bupt.tao.graph.base_algorithms;
 
+import edu.bupt.tao.LogRec;
 import edu.bupt.tao.algorithms_SSLT.test_main;
 import edu.bupt.tao.edu.bupt.tao.graph_SSLT.Multicast_Graph;
 import edu.bupt.tao.edu.bupt.tao.graph_SSLT.SpanningTree;
@@ -49,7 +50,7 @@ public class Constrained_Steiner_Tree {
                 }
             }
         }
-//        test_main.log.debug("COST GRAPH:");
+//        LogRec.log.debug("COST GRAPH:");
 //        for (int v = 0; v < graph[0].length; v++)
 //        {
 //            for (int w = 0 ; w < graph[0].length; w++) {
@@ -126,7 +127,7 @@ public class Constrained_Steiner_Tree {
     }
     public SpanningTree get_tree_w_src(Integer src, Set<Integer> users, double dis_constraint){
         int[][] paths_all = _FloydAlgo();
-        print_tree(paths_all);
+//        print_tree(paths_all);
         //all nodes including src and dsts
         Set<Integer> all_node_V = new HashSet<Integer>();
         //visited nodes
@@ -158,9 +159,9 @@ public class Constrained_Steiner_Tree {
 
 
         while(visited_node_C.size() != all_node_V.size()){
-            test_main.log.debug("Visited node set size: " + visited_node_C.size());
-            test_main.log.debug("All node set size: " + all_node_V.size());
-            test_main.log.debug("Temp set size: " + temp.size());
+//            LogRec.log.debug("Visited node set size: " + visited_node_C.size());
+//            LogRec.log.debug("All node set size: " + all_node_V.size());
+//            LogRec.log.debug("Temp set size: " + temp.size());
             Iterator<Integer> it_1 = visited_node_C.iterator();
             Iterator<Integer> it_2 = temp.iterator();
             src_index = -1;
@@ -172,9 +173,10 @@ public class Constrained_Steiner_Tree {
             while(it_1.hasNext()){
                 v = it_1.next();
                 while(it_2.hasNext()){
-                    test_main.log.debug("Both has next");
+//                    LogRec.log.debug("Both has next");
                     w = it_2.next();
-                    test_main.log.debug("Process here");
+//                    LogRec.log.debug("Process here");
+//                    LogRec.log.debug("Actual dis:" + disGraph[v][w] + ", limit dis:" + dis_constraint);
                     if(disGraph[v][w] <= dis_constraint){
                         double f_vw = graph[v][w];
                         if(f_vw < min){
@@ -193,7 +195,7 @@ public class Constrained_Steiner_Tree {
                 cost_path_P.put(dst_index, temp_P);
                 temp.remove(dst_index);
             }else{
-                test_main.log.error("Cannot Find Tree! Error Info [dst_index: " + dst_index + "]");
+//                LogRec.log.debug("Cannot Find Tree! Error Info [dst_index: " + dst_index + "]");
                 return null;
             }
         }
@@ -201,15 +203,15 @@ public class Constrained_Steiner_Tree {
         //Now we have got the set of edges which constructs a spanning tree with minimum cost (spanning_tree_T),
         //but in spanning_tree_T, the edges may consist of several actual edge of original graph.
         //Then we will transform it to the form we need
-        test_main.log.debug("Size of Pair Set:" + spanning_tree_T.size());
+        LogRec.log.debug("Size of Pair Set:" + spanning_tree_T.size());
         Multicast_Graph auxiliary_graph = new Multicast_Graph(multicast_graph);
         Set<Pair<BaseVertex, BaseVertex>> all_edges = new HashSet<Pair<BaseVertex, BaseVertex>>();
         for(Pair<Integer, Integer> edge_in_T: spanning_tree_T){
             int v = edge_in_T.first();
             int w = edge_in_T.second();
             //this log can see the edges chosen from the closure graph (i.e. aggregated edges)
-            test_main.log.debug("src:" + v);
-            test_main.log.debug("dst:" + w);
+            LogRec.log.debug("src:" + v);
+            LogRec.log.debug("dst:" + w);
             int k;
             k = paths_all[v][w];
 
@@ -218,11 +220,11 @@ public class Constrained_Steiner_Tree {
                 all_edges.add(new Pair<BaseVertex, BaseVertex>(auxiliary_graph.get_vertex(v), auxiliary_graph.get_vertex(k)));
                 total_cost += auxiliary_graph.get_edge_cost(auxiliary_graph.get_vertex(v), auxiliary_graph.get_vertex(k));
                 v = k;
-                test_main.log.debug("k:" + k);
+                LogRec.log.debug("k:" + k);
                 k = paths_all[k][w];
             }while (v != w);
         }
-        test_main.log.debug("Size of all edge set: " + all_edges.size());
+        LogRec.log.debug("Size of all edge set: " + all_edges.size());
         //first we construct an auxiliary graph, then we calculate the path based on it
         List<BaseVertex> vertex_list = auxiliary_graph.get_vertex_list();
         for(BaseVertex bv: vertex_list){
@@ -231,7 +233,7 @@ public class Constrained_Steiner_Tree {
             while(it_adj.hasNext()){
                 BaseVertex adj_of_bv = it_adj.next();
                 if(all_edges.contains(new Pair<BaseVertex, BaseVertex>(bv, adj_of_bv))){
-                    test_main.log.debug("Remain Edge: " + bv.get_id() + "->" + adj_of_bv.get_id());
+                    LogRec.log.debug("Remain Edge: " + bv.get_id() + "->" + adj_of_bv.get_id());
                     continue;
                 }
                 else
@@ -246,18 +248,18 @@ public class Constrained_Steiner_Tree {
         DijkstraShortestPathAlg dsp = new DijkstraShortestPathAlg(auxiliary_graph);
         for(Integer user: users){
             //it seems the last parameter does not matter because there is only one path in the auxiliary graph.
-            //but if true, the distance will
+
             Path p_user = dsp.get_shortest_path(auxiliary_graph.get_vertex(src), auxiliary_graph.get_vertex(user),true);
-            test_main.log.debug("Automatically Generated Path Info: " + p_user);
+            LogRec.log.debug("Automatically Generated Path Info: " + p_user);
 //            p_user.setCost(cost_path_P.get(user));
-//            test_main.log.info("After set cost Path info: " + p_user);
+//            LogRec.log.info("After set cost Path info: " + p_user);
             spanning_tree.add_path(p_user);
         }
         //
         spanning_tree.setTotal_cost(total_cost);
         //check if all users can contained
         if(spanning_tree.getPaths_of_tree().size() != users.size()){
-            test_main.log.error("Exist users that are not contained!");
+            LogRec.log.error("Exist users that are not contained!");
             return null;
         }
 

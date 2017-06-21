@@ -1,5 +1,6 @@
 package edu.bupt.tao.algorithms_SSLT;
 
+import edu.bupt.tao.LogRec;
 import edu.bupt.tao.content_graph.edu.bupt.tao.content_graph.model.Datacenter;
 import edu.bupt.tao.graph.base_algorithms.DijkstraShortestPathAlg;
 import edu.bupt.tao.graph.model.ModulationSelecting;
@@ -73,9 +74,9 @@ public class User_Grouping {
             paths_of_users.add(up);
         }
         Collections.sort(paths_of_users);
-        for(User_Path up : paths_of_users){
-            System.out.println(up);
-        }
+//        for(User_Path up : paths_of_users){
+//            System.out.println(up);
+//        }
         return paths_of_users;
     }
     public Map<Datacenter, List<User_Group_Info>> grouping_algo1(){
@@ -96,25 +97,25 @@ public class User_Grouping {
 
                 if(result_flag)
                     break;
-                System.out.println("------------------------------------");
-                System.out.println("USER ID: " + user_path.user);
+                LogRec.log.debug("------------------------------------");
+                LogRec.log.debug("USER ID: " + user_path.user);
                 boolean next_path_can_use = true;
                 for(Path path : user_path.paths){
                     Datacenter dc = this.mr_Graph.getDcs().get(path.get_src());
                     User_Group_Info ugi = null;
-                    System.out.println("Value i:" + i);
+                    LogRec.log.debug("Value i:" + i);
                     if(user_group_UG.get(dc).size() >= i){
 
                         ugi = user_group_UG.get(dc).get(i-1);
-                        System.out.println("UGI ML: " + ugi.modulation_level);
-                        System.out.println("S_mn: " + modulationSelecting.generate_Smn(ugi.modulation_level, ugi.users.size() + 1));
-                        System.out.println("Path dis: " + path.get_weight());
+                        LogRec.log.debug("UGI ML: " + ugi.modulation_level);
+                        LogRec.log.debug("S_mn: " + modulationSelecting.generate_Smn(ugi.modulation_level, ugi.users.size() + 1));
+                        LogRec.log.debug("Path dis: " + path.get_weight());
                         if(modulationSelecting.generate_Smn(ugi.modulation_level, ugi.users.size() + 1) >= path.get_weight()) {
                             ugi.users.add(user_path.user);
                             if (ugi.longest_dis < path.get_weight())
                                 ugi.setLongest_dis(path.get_weight());
                             result_flag = true;
-                            System.out.println("Existed group:" + ugi.dc.vertex.get_id() + " index: " + ugi.index);
+                            LogRec.log.debug("Existed group:" + ugi.dc.vertex.get_id() + " index: " + ugi.index);
                             break;
                         }
                         //if the ML degradation of current path is smaller than that of next path
@@ -128,7 +129,7 @@ public class User_Grouping {
 
                             }
                             if(judge_modulation(path_1, path_2, ugi)){
-                                System.out.println("Path 1 is smaller");
+                                LogRec.log.debug("Path 1 is smaller");
                                 next_path_can_use = false;
 
                             }else{
@@ -140,14 +141,14 @@ public class User_Grouping {
 
                     }
                     else if(next_path_can_use){
-                        System.out.println("Create new Group");
+                        LogRec.log.debug("Create new Group");
                         ugi = new User_Group_Info(dc, i);
                         ugi.users.add(user_path.user);
                         ugi.modulation_level = modulationSelecting.modulation_select(path.get_weight());
                         ugi.setLongest_dis(path.get_weight());
                         user_group_UG.get(dc).add(ugi);
                         result_flag = true;
-                        System.out.println("new group:" + ugi.dc.vertex.get_id() + " index: " + ugi.index);
+                        LogRec.log.debug("new group:" + ugi.dc.vertex.get_id() + " index: " + ugi.index);
                         break;
 
                     }
@@ -164,26 +165,26 @@ public class User_Grouping {
             if(ugi.longest_dis < user_path.paths.get(0).get_weight())
                 ugi.longest_dis = user_path.paths.get(0).get_weight();
             reset_modulation(ugi);
-            System.out.println("Add to existed group with degradation:" + ugi.dc.vertex.get_id() + " index: " + ugi.index);
+            LogRec.log.debug("Add to existed group with degradation:" + ugi.dc.vertex.get_id() + " index: " + ugi.index);
 
         }
-        System.out.println("User Groups");
+        LogRec.log.debug("User Groups");
         for(Map.Entry<Datacenter,List<User_Group_Info>> entry: user_group_UG.entrySet()){
 
             for(User_Group_Info ugi : entry.getValue()){
 
                 if(ugi != null){
-                    System.out.println("****************************");
-                    System.out.println("size" + ugi.users.size());
-                    System.out.println("SLT index: " + ugi.index + " DC: " + ugi.dc.vertex.get_id() + " ML: " + ugi.modulation_level + " Longest dis: " + ugi.longest_dis + " Users:");
+                    LogRec.log.debug("****************************");
+                    LogRec.log.debug("size" + ugi.users.size());
+                    LogRec.log.debug("SLT index: " + ugi.index + " DC: " + ugi.dc.vertex.get_id() + " ML: " + ugi.modulation_level + " Longest dis: " + ugi.longest_dis + " Users:");
 
                     Iterator<Integer> it = ugi.users.iterator();
                     while(it.hasNext()){
-                        System.out.print(it.next() + " ");
+                        LogRec.log.debug(it.next() + " ");
                     }
                 }
-                System.out.println();
-                System.out.println("****************************");
+                LogRec.log.debug("");
+                LogRec.log.debug("****************************");
             }
         }
 
@@ -228,10 +229,8 @@ public class User_Grouping {
     private User_Group_Info get_group_w_min_users(Map<Datacenter, List<User_Group_Info>> groups){
         User_Group_Info final_group = null;
         int min_users_no = Multicast_Graph.INF;
-        System.out.println("YYYY:" + groups.size());
         for(Map.Entry<Datacenter, List<User_Group_Info>> entry : groups.entrySet()){
             for(User_Group_Info ugi : entry.getValue()){
-                System.out.println("SSSS: " + ugi.users.size());
                 if(min_users_no > ugi.users.size() ){
                     final_group = ugi;
                 }
