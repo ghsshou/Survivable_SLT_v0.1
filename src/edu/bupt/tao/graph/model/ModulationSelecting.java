@@ -14,6 +14,13 @@ public class ModulationSelecting {
         ModulationFormats.put(3,new ModulationFormat("8QAM", 3, 600));
         ModulationFormats.put(4,new ModulationFormat("16QAM", 4, 300));
     }
+    public int get_highest_ML(){
+        int level = 0;
+        for(Map.Entry<Integer, ModulationFormat> entry: this.ModulationFormats.entrySet()){
+            level = level < entry.getKey()? entry.getKey() : level;
+        }
+        return level;
+    }
 
     public double generate_Smn(int m, int n){
         if(m == 0)
@@ -31,6 +38,16 @@ public class ModulationSelecting {
     }
     public double get_capacity(int level){
         return ModulationFormats.get(level).getCapacity();
+    }
+    public int get_highest_ML(int n, double longes_dis){
+        int m = this.get_highest_ML();
+        for(; m > 0; m --){
+            if(generate_Smn(m, n) > longes_dis){
+                return m;
+            }
+        }
+        return -1;
+
     }
 
 

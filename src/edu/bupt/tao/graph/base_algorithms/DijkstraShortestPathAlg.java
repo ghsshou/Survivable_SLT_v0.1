@@ -353,5 +353,24 @@ public class DijkstraShortestPathAlg
 			}
 		}
 	}
+
+	/*
+	by Tao, to calculate a set of dsts(datacenters) to a certain user and return the shortest one
+	 */
+	public Path get_shortest_path(Set<BaseVertex> srcs, BaseVertex sink_vertex, boolean use_cost){
+		Path path = null;
+		Path shortest_path = null;
+		double min_value = Double.MAX_VALUE;
+		double temp_value = Double.MAX_VALUE;
+		for(BaseVertex src: srcs){
+			path = get_shortest_path(src, sink_vertex, use_cost);
+			temp_value = use_cost ? path.getCost() : path.get_weight();
+			if(min_value > temp_value){
+				shortest_path = path;
+				min_value = temp_value;
+			}
+		}
+		return shortest_path;
+	}
 	
 }

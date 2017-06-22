@@ -51,6 +51,10 @@ public class Resource {
 		}
 	}
 
+	public double getCost() {
+		return cost;
+	}
+
 	public int getStart_index() {
 		return start_index;
 	}
@@ -72,6 +76,10 @@ public class Resource {
 		else if(traffic_id == slots[slot_index].getTraffic_id())
 			return true;
 		return false;
+	}
+
+	public void setCost(double cost) {
+		this.cost = cost;
 	}
 
 	public boolean set_slots_free_for_MR(int start, int end, int traffic_id){
@@ -97,6 +105,33 @@ public class Resource {
 	public int total_used_slots(){
 		LogRec.log.debug("src:" + start_index + ", dst:" + end_index + ",used slots:" + (SLOTS_NO - this.slots_empty_num));
 		return (SLOTS_NO - this.slots_empty_num);
+	}
+	public int reserved_slots_for_traffic(int traffic_id){
+		int total = 0;
+		for(Slot slot: slots){
+			if(slot.isUse_state() == false && slot.getTraffic_id() == traffic_id && slot.getOccupy_type() == 0){
+				total ++;
+			}
+		}
+		return total;
+	}
+	public int occupied_slots_for_traffic(int traffic_id){
+		int total = 0;
+		for(Slot slot: slots){
+			if(slot.isUse_state() == false && slot.getTraffic_id() == traffic_id && slot.getOccupy_type() == 1){
+				total ++;
+			}
+		}
+		return total;
+	}
+	public int reserved_slots_except_traffic(int traffic_id){
+		int total = 0;
+		for(Slot slot: slots){
+			if(slot.isUse_state() == false && slot.getTraffic_id() != traffic_id && slot.getOccupy_type() == 0){
+				total ++;
+			}
+		}
+		return total;
 	}
 
 }

@@ -110,11 +110,17 @@ public class Path implements BaseElementWithWeight,Comparable<Path>
 	public BaseVertex get_src(){
 		return _vertex_list.get(0);
 	}
+	public BaseVertex get_dst(){
+		return _vertex_list.get(_vertex_list.size() - 1);
+	}
 
 	public void setCost(double cost) {
 		this.cost = cost;
 	}
 
+	public double getCost() {
+		return cost;
+	}
 
 	public int getHop() {
 		return hop;
@@ -160,7 +166,7 @@ public class Path implements BaseElementWithWeight,Comparable<Path>
 			return 1;
 		int delta = (int) (this._weight - o.get_weight());
 		if(delta == 0)
-			delta = this.getHop() - o .getHop();
+			delta = (int) (this.cost - o.cost);
 		return delta;
 	}
 }
