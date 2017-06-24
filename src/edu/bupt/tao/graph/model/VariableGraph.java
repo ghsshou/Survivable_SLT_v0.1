@@ -66,6 +66,10 @@ public class VariableGraph extends Graph
 	 * 
 	 * @param graph
 	 */
+	public VariableGraph(Graph graph, boolean new_resource)
+	{
+		super(graph, new_resource);
+	}
 	public VariableGraph(Graph graph)
 	{
 		super(graph);

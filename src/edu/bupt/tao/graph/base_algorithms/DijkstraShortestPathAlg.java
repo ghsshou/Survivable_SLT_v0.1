@@ -222,6 +222,7 @@ public class DijkstraShortestPathAlg
 		double total_weight_or_cost = 0;
 		do{
 			src = vertex_list.get(index);
+
 			dst = vertex_list.get(index + 1);
 			if(use_cost){
 				total_weight_or_cost += this._graph.get_edge_weight(src, dst);
@@ -363,6 +364,7 @@ public class DijkstraShortestPathAlg
 		double min_value = Double.MAX_VALUE;
 		double temp_value = Double.MAX_VALUE;
 		for(BaseVertex src: srcs){
+
 			path = get_shortest_path(src, sink_vertex, use_cost);
 			temp_value = use_cost ? path.getCost() : path.get_weight();
 			if(min_value > temp_value){

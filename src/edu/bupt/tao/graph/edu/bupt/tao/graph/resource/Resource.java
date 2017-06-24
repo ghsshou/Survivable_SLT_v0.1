@@ -1,23 +1,52 @@
 package edu.bupt.tao.graph.edu.bupt.tao.graph.resource;
 
 
+import com.sun.org.apache.regexp.internal.RE;
 import edu.bupt.tao.LogRec;
 
-public class Resource {
+import java.util.HashSet;
+import java.util.Set;
+
+public class Resource{
 
 	public static final int SLOTS_NO = 190;
 	public double weight;
 	public double cost;//by Tao, 6/20/2017
-	public Slot[] slots;
+	public Slot[] slots = new Slot[SLOTS_NO];
 	private int slots_empty_num = SLOTS_NO;
 	
 	private int start_index;
 	private int end_index;
+	private Set<Integer> reserved_traffic;
 	
 	public Resource() {
 		slots = new Slot[SLOTS_NO];
 		for (int i = 0; i < SLOTS_NO; i++)
 			slots[i] = new Slot();
+		reserved_traffic = new HashSet<Integer>();
+		this.start_index = -1;
+		this.end_index = -1;
+		this.weight = -1;
+		this.cost = -1;
+	}
+	public Resource(Resource source){
+		this.weight = source.weight;
+		this.cost = source.cost;
+		this.start_index = source.start_index;
+		this.end_index = source.end_index;
+		this.slots_empty_num = source.slots_empty_num;
+		for (int i = 0; i < SLOTS_NO; i++)
+			slots[i] = new Slot(source.slots[i]);
+		reserved_traffic = new HashSet<Integer>();
+		for(int i: source.reserved_traffic){
+			this.reserved_traffic.add(i);
+		}
+	}
+	public void add_reserved_traffic(int traffic_id){
+		reserved_traffic.add(traffic_id);
+	}
+	public boolean contains_reserved_traffic(int traffic_id){
+		return reserved_traffic.contains(traffic_id);
 	}
 	public void clear_slots()
 	{
@@ -49,6 +78,7 @@ public class Resource {
 				slots_empty_num ++;
 			}
 		}
+		reserved_traffic.remove(traffic_id);
 	}
 
 	public double getCost() {
@@ -70,13 +100,21 @@ public class Resource {
 	public void setEnd_index(int end_index) {
 		this.end_index = end_index;
 	}
+	//judge for primary tree
 	public boolean slot_can_use(int slot_index, int traffic_id){
 		if(slots[slot_index].isUse_state())
 			return true;
 		else if(traffic_id == slots[slot_index].getTraffic_id())
 			return true;
+		LogRec.log.debug("SRC:" + this.start_index + ",DST:" + this.end_index + ",SLOT INDEX:" +
+				slot_index + ",SLOT TRAFFIC ID:" + slots[slot_index].getTraffic_id());
 		return false;
 	}
+	//calculate the number of slots when allocating resource for traffic_id, return -1, if the range of slots cannot be used.
+	public int extra_slots_for_reserve(int traffic_id, int start_index, int required_slots){
+
+
+    }
 
 	public void setCost(double cost) {
 		this.cost = cost;
@@ -95,10 +133,13 @@ public class Resource {
 		return true;
 	}
 	public boolean use_slot(int index, int traffic_id, int use_type){
+		//to avoid the cast where two paths of a single tree traverse a same link, if we do not judge like this, then the empty_num will minus twice
+		if(slots[index].isUse_state()){
+			this.slots_empty_num --;
+		}
 		slots[index].setUse_state(false);
 		slots[index].setOccupy_type(use_type);
 		slots[index].setTraffic_id(traffic_id);
-		this.slots_empty_num--;
 		return true;
 
 	}
@@ -133,5 +174,6 @@ public class Resource {
 		}
 		return total;
 	}
+
 
 }

@@ -88,4 +88,21 @@ public class SpanningTree {
         }
         System.out.println();
     }
+    public double get_longest_dis(){
+        double long_dis = -1;
+        for(Path p: paths_of_tree){
+            long_dis = long_dis > p.get_weight() ? long_dis : p.get_weight();
+        }
+        return long_dis;
+
+    }
+
+    public void pritn_tree(){
+        System.out.println("TREE INFO:");
+        System.out.print("SRC:" + paths_of_tree.get(0).get_src() + " USERS:");
+        for(Path p: paths_of_tree){
+            System.out.print(p.get_dst() + " ");
+        }
+        System.out.print("TOTAL COST:" + total_cost + " START SLOT:" + startSlots + " USED SLOTS:" + useSlots + " ML:" + modulationLevel);
+    }
 }

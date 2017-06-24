@@ -31,6 +31,7 @@
 
 package edu.bupt.tao.graph.model;
 
+import com.sun.org.apache.regexp.internal.RE;
 import edu.bupt.tao.graph.edu.bupt.tao.graph.resource.Slot;
 import edu.bupt.tao.graph.model.abstracts.BaseGraph;
 import edu.bupt.tao.graph.model.abstracts.BaseVertex;
@@ -97,7 +98,29 @@ public class Graph implements BaseGraph
 	 * 
 	 * @param graph
 	 */
-	public Graph(final Graph graph_)
+	//this constructor creates a new Resource object, which is dependent from the one of the input parameter "graph_"
+	public Graph(Graph graph_, boolean new_resource)
+	{
+		_vertex_num = graph_._vertex_num;
+		_edge_num = graph_._edge_num;
+		_vertex_list.addAll(graph_._vertex_list);
+		_id_vertex_index.putAll(graph_._id_vertex_index);
+		_fanin_vertices_index.putAll(graph_._fanin_vertices_index);
+		_fanout_vertices_index.putAll(graph_._fanout_vertices_index);
+		//modified by Tao, to clone a new Resource
+		if(new_resource){
+			for(Map.Entry<Pair<Integer, Integer>, Resource> entry : graph_._vertex_pair_weight_index.entrySet()){
+				Resource res = new Resource(entry.getValue());
+				_vertex_pair_weight_index.put(entry.getKey(), res);
+
+			}
+
+		}
+		_pair_list.addAll(graph_.get_pair_list());
+		_vertex_num = graph_._vertex_num;
+		_edge_num = graph_._edge_num;
+	}
+	public Graph(Graph graph_)
 	{
 		_vertex_num = graph_._vertex_num;
 		_edge_num = graph_._edge_num;
@@ -106,6 +129,9 @@ public class Graph implements BaseGraph
 		_fanin_vertices_index.putAll(graph_._fanin_vertices_index);
 		_fanout_vertices_index.putAll(graph_._fanout_vertices_index);
 		_vertex_pair_weight_index.putAll(graph_._vertex_pair_weight_index);
+		_pair_list.addAll(graph_.get_pair_list());
+		_vertex_num = graph_._vertex_num;
+		_edge_num = graph_._edge_num;
 	}
 	
 	/**
@@ -346,10 +372,34 @@ public class Graph implements BaseGraph
 			}
 		}
 	}
-	
+
+	public void set_fanout_vertices_index(Map<Integer, Set<BaseVertex>> _fanout_vertices_index) {
+		this._fanout_vertices_index = _fanout_vertices_index;
+	}
+
+	public void set_fanin_vertices_index(Map<Integer, Set<BaseVertex>> _fanin_vertices_index) {
+		this._fanin_vertices_index = _fanin_vertices_index;
+	}
+
+	public void set_vertex_pair_weight_index(Map<Pair<Integer, Integer>, Resource> _vertex_pair_weight_index) {
+		this._vertex_pair_weight_index = _vertex_pair_weight_index;
+	}
+
+	public void set_id_vertex_index(Map<Integer, BaseVertex> _id_vertex_index) {
+		this._id_vertex_index = _id_vertex_index;
+	}
+
+	public void set_vertex_list(List<BaseVertex> _vertex_list) {
+		this._vertex_list = _vertex_list;
+	}
+
+	public void set_pair_list(List<Pair<Integer, Integer>> _pair_list) {
+		this._pair_list = _pair_list;
+	}
+
 	/* (non-Javadoc)
-	 * @see edu.asu.emit.qyan.alg.BaseGraph#get_adjacent_vertices(edu.asu.emit.qyan.alg.BaseVertex)
-	 */
+         * @see edu.asu.emit.qyan.alg.BaseGraph#get_adjacent_vertices(edu.asu.emit.qyan.alg.BaseVertex)
+         */
 	public Set<BaseVertex> get_adjacent_vertices(BaseVertex vertex)
 	{
 		return _fanout_vertices_index.containsKey(vertex.get_id()) 

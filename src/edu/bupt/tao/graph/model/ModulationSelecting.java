@@ -9,10 +9,10 @@ import java.util.Map;
 public class ModulationSelecting {
     public Map<Integer,ModulationFormat> ModulationFormats = new HashMap<Integer,ModulationFormat>();
     public ModulationSelecting(){
-        ModulationFormats.put(1,new ModulationFormat("BPSK", 1, 2400));
-        ModulationFormats.put(2,new ModulationFormat("QPSK", 2, 1200));
-        ModulationFormats.put(3,new ModulationFormat("8QAM", 3, 600));
-        ModulationFormats.put(4,new ModulationFormat("16QAM", 4, 300));
+        ModulationFormats.put(1,new ModulationFormat("BPSK", 1, 6000));
+        ModulationFormats.put(2,new ModulationFormat("QPSK", 2, 3000));
+        ModulationFormats.put(3,new ModulationFormat("8QAM", 3, 1500));
+        ModulationFormats.put(4,new ModulationFormat("16QAM", 4,750));
     }
     public int get_highest_ML(){
         int level = 0;

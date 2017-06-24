@@ -3,7 +3,7 @@ package edu.bupt.tao.graph.edu.bupt.tao.graph.resource;
 /**
  * Created by Gao Tao on 2017/6/8.
  */
-public class Slot {
+public class Slot implements Cloneable {
     boolean use_state;//0 denotes used,1 not used
     int traffic_id;//denotes the traffic id to use it
     int occupy_type;//occupy 1 or reserve 0
@@ -14,6 +14,12 @@ public class Slot {
         this.traffic_id = -1;
         this.occupy_type = -1;
         this.locked = false;
+    }
+    public Slot(Slot s){
+        this.use_state = s.use_state;
+        this.traffic_id = s.traffic_id;
+        this.occupy_type = s.occupy_type;
+        this.locked = s.locked;
     }
 
     public void setSlot_free(){
@@ -62,5 +68,10 @@ public class Slot {
                 ", traffic_id=" + traffic_id +
                 ", occupy_type=" + occupy_type +
                 '}';
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }
