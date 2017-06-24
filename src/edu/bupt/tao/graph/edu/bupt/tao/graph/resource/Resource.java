@@ -112,8 +112,22 @@ public class Resource{
 	}
 	//calculate the number of slots when allocating resource for traffic_id, return -1, if the range of slots cannot be used.
 	public int extra_slots_for_reserve(int traffic_id, int start_index, int required_slots){
-
-
+		int counter = 0;
+		for(int i = start_index; i <= start_index + required_slots - 1; i++){
+			if(slots[i].isUse_state()){
+				counter++;
+			}
+			else{
+				//if this slot is occupied by the path of same traffic or reserved by other backup paths
+				if((slots[i].getOccupy_type() == 1 && traffic_id = slots[i].traffic_id) || slots[i].getOccupy_type() == 0){
+					contine;
+				}
+				else{
+					return -1;
+				}
+			}
+		}
+		return counter;
     }
 
 	public void setCost(double cost) {
@@ -132,6 +146,7 @@ public class Resource{
 		}
 		return true;
 	}
+	//only for primary path occupying
 	public boolean use_slot(int index, int traffic_id, int use_type){
 		//to avoid the cast where two paths of a single tree traverse a same link, if we do not judge like this, then the empty_num will minus twice
 		if(slots[index].isUse_state()){

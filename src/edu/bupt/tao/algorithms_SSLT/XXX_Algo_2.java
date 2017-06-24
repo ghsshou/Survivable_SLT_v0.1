@@ -205,19 +205,30 @@ public class XXX_Algo_2 {
         for(Map.Entry<Datacenter, List<SpanningTree>> entry :dc_w_btrees.entrySet()){
             all_backup_trees.addAll(entry.getValue());
         }
+        Multicast_Graph auxiliary_g_bp = new Multicast_Graph(global_graph, true);
         for(SpanningTree st : all_backup_trees){
+            int required_slots = (int) Math.ceil(mr.capacity / modulation_selecting.get_capacity(st.getModulationLevel()));
             int optimal_index = -1;
             double extra_slots = Double.MAX_VALUE;
-            int temp_extra = calculate_extra_slots();
+            for(int i = 0; i < Resource.SLOTS_NO - required_slots + 1; slot_i++){
+                int temp_extra = calculate_extra_slots(auxiliary_g_bp, mr.id, i, required_slots);
+                if(temp_extra == -1){
+                    continue;
+                }
+                if(extra_slots > temp_extra){
+                    optimal_index = i;
+                    extra_slots = temp_extra;
+                }
+
+            }
+            if(optimal_index != -1){
+                if(!reserve_resource(st, mr.id, optimal_index, required_slots))
+                    return false;
+
+            }
+
         }
-
-
-
-
-
-
-
-
+        LogRec.log.info("Here, successfully reserve resource for all backup trees!");
 
         return true;
 
@@ -486,18 +497,41 @@ public class XXX_Algo_2 {
             tree.setModulationLevel(-1);
         }
     }
-    public int calculate_extra_slots(Multicast_Graph mg, int traffic_id, SpanningTree bp_tree, int start_slot, int required_slots){
-        int extra_slots = -1;
+    private int calculate_extra_slots(Multicast_Graph mg, int traffic_id, SpanningTree bp_tree, int start_slot, int required_slots){
+        int extra_slots = 0;
         for(Path p: bp_tree.getPaths_of_tree()){
             for(int i = 0; i < p.get_vertices().size() - 1; i++){
                 BaseVertex v = p.get_vertices().get(i);
                 BaseVertex w = p.get_vertices().get(i + 1);
                 Resource res = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
+                int temp_counter = res.extra_slots_for_reserve(traffic_id, start_slot, required_slots);
+                if(temp_counter == -1)
+                    return -1;
+                extra_slots += temp_counter;
             }
         }
+        LogRec.log.info("Extra slots at start index:" + start_slot + "using extra slots:" + extra_slots);
+        return extra_slots;
 
 
     }
+    private boolean reserve_resource(SpanningTree st, int traffic_id, int start_index, int required_slots){
+        for(Path p: st.getPaths_of_tree()){
+            for(int i = 0; i < p.get_vertices().size() - 1; i++){
+                BaseVertex v = p.get_vertices().get(i);
+                BaseVertex w = p.get_vertices().get(i + 1);
+                Resource res = this.global_graph.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
+                for(int j = start_index; j < start_index + required_slots; j++){
+                    if(!res.getSlots()[j].reserve(traffic_id)){
+                        LogRec.log.debug("Reserve Failed! @Slot:" + j + ",Link:" + res.getStart_index() + "->" + res.getEnd_index());
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
 
 
 
