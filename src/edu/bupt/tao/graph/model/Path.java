@@ -44,6 +44,8 @@ import java.util.Vector;
 public class Path implements BaseElementWithWeight,Comparable<Path>
 {
 	List<BaseVertex> _vertex_list = new Vector<BaseVertex>();
+	static int counter = -1;
+	int id;
 	double _weight = -1;
 	double cost = -1;
 	int hop;
@@ -61,7 +63,8 @@ public class Path implements BaseElementWithWeight,Comparable<Path>
 	public Path(List<BaseVertex> _vertex_list, double _weight)
 	{
 		this._vertex_list = _vertex_list;
-
+		this.counter ++;
+		this.id = counter;
 		this._weight = _weight;
 		hop = _vertex_list.size() - 1;
 		latency = switchLatency * hop + _weight / transSpeed;
@@ -125,7 +128,11 @@ public class Path implements BaseElementWithWeight,Comparable<Path>
 	public int getHop() {
 		return hop;
 	}
-	
+
+	public int getId() {
+		return id;
+	}
+
 	//version 2.0: used to record the latency for paths
 	public double getLatency(){
 		return latency;

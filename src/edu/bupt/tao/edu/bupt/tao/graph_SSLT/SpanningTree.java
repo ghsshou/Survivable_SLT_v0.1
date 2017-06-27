@@ -15,12 +15,16 @@ import java.util.Set;
  */
 public class SpanningTree {
     List<Path> paths_of_tree;
+    static int counter = -1;
+    int id;
     double total_cost;
     int startSlots;
     int useSlots;
     int modulationLevel;
     public SpanningTree(){
         paths_of_tree = new ArrayList<Path>();
+        counter ++;
+        id = counter;
     }
     Set<Pair<BaseVertex, BaseVertex>> get_all_edges(){
         Set<Pair<BaseVertex, BaseVertex>> all_edges = new HashSet<Pair<BaseVertex, BaseVertex>>();
@@ -104,5 +108,9 @@ public class SpanningTree {
             System.out.print(p.get_dst() + " ");
         }
         System.out.print("TOTAL COST:" + total_cost + " START SLOT:" + startSlots + " USED SLOTS:" + useSlots + " ML:" + modulationLevel);
+    }
+
+    public int getId() {
+        return id;
     }
 }

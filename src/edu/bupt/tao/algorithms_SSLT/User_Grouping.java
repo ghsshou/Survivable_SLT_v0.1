@@ -73,6 +73,7 @@ public class User_Grouping {
             User_Path up = new User_Path(i, paths);
             paths_of_users.add(up);
         }
+        //sort according to their shortest path length
         Collections.sort(paths_of_users);
 //        for(User_Path up : paths_of_users){
 //            System.out.println(up);
@@ -94,7 +95,6 @@ public class User_Grouping {
         for(User_Path user_path : paths_of_users){
             boolean result_flag = false;
             for(int i = 1; i <= MP; i++){
-
                 if(result_flag)
                     break;
                 LogRec.log.debug("------------------------------------");
@@ -105,8 +105,7 @@ public class User_Grouping {
                     User_Group_Info ugi = null;
                     LogRec.log.debug("Value i:" + i);
                     if(user_group_UG.get(dc).size() >= i){
-
-                        ugi = user_group_UG.get(dc).get(i-1);
+                        ugi = user_group_UG.get(dc).get(i - 1);
                         LogRec.log.debug("UGI ML: " + ugi.modulation_level);
                         LogRec.log.debug("S_mn: " + modulationSelecting.generate_Smn(ugi.modulation_level, ugi.users.size() + 1));
                         LogRec.log.debug("Path dis: " + path.get_weight());
@@ -126,19 +125,14 @@ public class User_Grouping {
                             //if path_2 exists
                             if(path_index != user_path.paths.size() - 1){
                                 path_2 = user_path.paths.get(path_index + 1);
-
                             }
                             if(judge_modulation(path_1, path_2, ugi)){
                                 LogRec.log.debug("Path 1 is smaller");
                                 next_path_can_use = false;
-
                             }else{
                                 next_path_can_use = true;
                             }
-
                         }
-
-
                     }
                     else if(next_path_can_use){
                         LogRec.log.debug("Create new Group");
@@ -192,37 +186,39 @@ public class User_Grouping {
 
     }
 
-    //return true if the sum of ML degradation when path_1 is added to the i-th group of the datacenter (path_1.src) is larger than that when path_2 is used
-    private boolean judge_modulation(Path path_1, int i_group_path1, Path path_2, Map<Datacenter,List<User_Group_Info>> user_group_UG){
-        //delta_m denotes the ML degradation when path is considered into a user group
-        if(path_2 == null)
-            return true;
-        User_Group_Info ugi_1 = user_group_UG.get(this.mr_Graph.getDcs().get(path_1.get_src())).get(i_group_path1);
-        double delta_m_1 = (ugi_1.users.size() + 1) / (double) get_modulation_w_new_path(ugi_1, path_1) -
-                ugi_1.users.size() / (double) ugi_1.modulation_level;
-        double delta_m_2 = Multicast_Graph.INF;
-
-        if(user_group_UG.get(this.mr_Graph.getDcs().get(path_2.get_src())).isEmpty())
-            delta_m_2 = 1 / get_modulation_of_path(path_2);
-        else{
-            for(User_Group_Info ugi_2 : user_group_UG.get(this.mr_Graph.getDcs().get(path_2.get_src()))){
-
-            }
-
-        }
-
-        return delta_m_1 > delta_m_2 ? true : false;
-
-    }
-    //return true if the sum of ML degradation when path_1 is added to the group is larger than that when path_2 is the only path for a new group
+    //return true if the sum of cost due to ML degradation when path_1 is added to the i-th group of the datacenter (path_1.src)
+    // is larger than that when path_2 is used
+//    private boolean judge_modulation(Path path_1, int i_group_path1, Path path_2, Map<Datacenter,List<User_Group_Info>> user_group_UG){
+//        //delta_m denotes the ML degradation when path is considered into a user group
+//        if(path_2 == null)
+//            return true;
+//        User_Group_Info ugi_1 = user_group_UG.get(this.mr_Graph.getDcs().get(path_1.get_src())).get(i_group_path1);
+//        double delta_m_1 = (ugi_1.users.size() + 1) / (double) get_modulation_w_new_path(ugi_1, path_1) -
+//                ugi_1.users.size() / (double) ugi_1.modulation_level;
+//        double delta_m_2 = Multicast_Graph.INF;
+//
+//        if(user_group_UG.get(this.mr_Graph.getDcs().get(path_2.get_src())).isEmpty())
+//            delta_m_2 = 1 / get_modulation_of_path(path_2);
+//        else{
+//            for(User_Group_Info ugi_2 : user_group_UG.get(this.mr_Graph.getDcs().get(path_2.get_src()))){
+//
+//            }
+//
+//        }
+//
+//        return delta_m_1 > delta_m_2;
+//
+//    }
+    //return true if the sum of cost due to ML degradation when path_1 is added to the group is larger
+    //than that when path_2 is the only path for a new group
     private boolean judge_modulation(Path path_1, Path path_2, User_Group_Info ugi_1){
         //delta_m denotes the ML degradation when path is considered into a user group
         if(path_2 == null)
             return true;
         double delta_m_1 = (ugi_1.users.size() + 1) / (double) get_modulation_w_new_path(ugi_1, path_1) -
                 ugi_1.users.size() / (double) ugi_1.modulation_level;
-        double delta_m_2 = 1 / get_modulation_of_path(path_2);
-        return delta_m_1 > delta_m_2 ? true : false;
+        double delta_m_2 = 1 / (double) get_modulation_of_path(path_2);
+        return delta_m_1 < delta_m_2;
 
     }
 
@@ -243,11 +239,11 @@ public class User_Grouping {
     private User_Group_Info get_group_w_min_users_from_d(Map<Datacenter, List<User_Group_Info>> groups, Datacenter d){
         User_Group_Info final_group = null;
         int min_users_no = Multicast_Graph.INF;
-            for(User_Group_Info ugi : groups.get(d)){
-                if(min_users_no > ugi.users.size() ){
-                    final_group = ugi;
-                }
+        for(User_Group_Info ugi : groups.get(d)){
+            if(min_users_no > ugi.users.size() ){
+                final_group = ugi;
             }
+        }
 
         return final_group;
     }

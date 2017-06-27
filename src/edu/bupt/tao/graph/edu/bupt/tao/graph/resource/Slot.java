@@ -1,67 +1,88 @@
 package edu.bupt.tao.graph.edu.bupt.tao.graph.resource;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by Gao Tao on 2017/6/8.
  */
+//the info used to denote a tree and a path
+class ID{
+    int tree_id = -1;
+    int path_id = -1;
+    ID(){}
+    ID(int tree_id, int path_id){
+        this.path_id = path_id;
+        this.tree_id = tree_id;
+    }
+}
 public class Slot {
     boolean use_state;//0 denotes used,1 not used
-    int traffic_id;//denotes the traffic id to use it (occupy)
     int occupy_type;//occupy 1 or reserve 0
-    boolean locked;//whether it is locked (temporarily allocated), true is locked, not used now
-    Set<Intger> traffic_reserve = new HashSet<Integer>();//denotes the traffic that reserves resource on this slot
+    int traffic_occupy;//denotes the traffic id and tree id to use it (occupy)
+    int tree_occupy;
+//    int path_occupy;
+    Map<Integer, Set<ID>> traffic_reserve = new HashMap<Integer, Set<ID>>();//denotes the traffic that reserves resource on this slot, key is traffic id
 
     public Slot(){
         this.use_state = true;
-        this.traffic_id = -1;
         this.occupy_type = -1;
-        this.locked = false;
+        this.tree_occupy = -1;
+        this.traffic_occupy = -1;
 
     }
     public Slot(Slot s){
         this.use_state = s.use_state;
-        this.traffic_id = s.traffic_id;
         this.occupy_type = s.occupy_type;
-        this.locked = s.locked;
+        this.traffic_occupy = s.traffic_occupy;
+        this.tree_occupy = s.tree_occupy;
         this.traffic_reserve.clear();
-        for(int i: s.traffic_reserve){
-            this.traffic_reserve.add(i);
+        for(Map.Entry<Integer, Set<ID>> entry: s.traffic_reserve.entrySet()){
+            int new_traffic_id = entry.getKey();
+            Set<ID> new_id = new HashSet<ID>();
+            for(ID id: entry.getValue()){
+               new_id.add(new ID(id.tree_id, id.path_id));
+            }
+            this.traffic_reserve.put(new_traffic_id, new_id);
         }
     }
-    public boolean reserve(int traffic_id){
+    //reserve resource for a backup tree
+    public boolean reserve(int traffic_id, int tree_id, int path_id){
+        ID new_id = new ID(tree_id, path_id);
         //if this slots is free
         if(this.isUse_state()){
             this.use_state = false;
             occupy_type = 0;
-            traffic_reserve.add(traffic_id);
+            Set<ID> new_tree_id = new HashSet<>();
+            new_tree_id.add(new_id);
+            traffic_reserve.put(traffic_id, new_tree_id);
         }
-
         else{
-            //if this slot is reserved by other bakup paths
-            if(occupy_type == 0){
-                traffic_reserve.add(traffic_id);
-            }
+            //if this slot is reserved by other backup paths
             //if this slot is occupied by the primary path of the same traffic
-            else{
-                if(this.traffic_id == traffic_id){
-                    traffic_reserve.add(traffic_id);
+            if(occupy_type == 0 || (occupy_type == 1 && this.traffic_occupy == traffic_id)){
+                //to avoid the other backup trees of a same traffic
+                if(traffic_reserve.containsKey(traffic_id)){
+                    traffic_reserve.get(traffic_id).add(new_id);
                 }
-                //if others
-                else
-                    return false;
+                else{
+                    Set<ID> id_set = new HashSet<>();
+                    id_set.add(new_id);
+                    traffic_reserve.put(traffic_id, id_set);
+                }
             }
-        }
+            //if others
+            else
+                return false;
+            }
         return true;
     }
 
     public void setSlot_free(){
         this.use_state = true;
-        this.traffic_id = -1;
         this.occupy_type = -1;
-        this.locked = false;
         this.traffic_reserve.clear();
+        this.traffic_occupy = -1;
+        this.tree_occupy = -1;
     }
 
     public boolean isUse_state() {
@@ -72,12 +93,19 @@ public class Slot {
         this.use_state = use_state;
     }
 
-    public int getTraffic_id() {
-        return traffic_id;
+    public int get_occupy_traffic_id() {
+        return traffic_occupy;
+    }
+    public int get_occupy_tree_id() {
+        return tree_occupy;
     }
 
-    public void setTraffic_id(int traffic_id) {
-        this.traffic_id = traffic_id;
+    public void set_traffic_id(int traffic_id) {
+        this.traffic_occupy = traffic_id;
+    }
+
+    public void set_tree_id(int tree_occupy){
+        this.tree_occupy = tree_occupy;
     }
 
     public int getOccupy_type() {
@@ -89,12 +117,4 @@ public class Slot {
     }
 
 
-    @Override
-    public String toString() {
-        return "Slot{" +
-                "use_state=" + use_state +
-                ", traffic_id=" + traffic_id +
-                ", occupy_type=" + occupy_type +
-                '}';
-    }
 }
