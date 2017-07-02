@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class Resource {
 
-    public static final int SLOTS_NO = 190;
+    public static final int SLOTS_NO = 500;
     public double weight;
     public double cost;//by Tao, 6/20/2017
     public Slot[] slots = new Slot[SLOTS_NO];
@@ -71,8 +71,9 @@ public class Resource {
 
 
     public void set_slots_free_for_MR(int traffic_id) {
+
         for (Slot slot : slots) {
-            if (slot.isUse_state()) {
+            if (!slot.isUse_state()) {
                 if (slot.getOccupy_type() == 1) {
                     //if occupy
                     if (slot.get_occupy_traffic_id() == traffic_id) {
@@ -205,7 +206,11 @@ public class Resource {
 
     public int total_used_slots() {
         LogRec.log.debug("src:" + start_index + ",dst:" + end_index + ",used slots:" + (SLOTS_NO - this.slots_empty_num));
-        return (SLOTS_NO - this.slots_empty_num);
+        int counter = 0;
+        for(Slot s: slots){
+            counter += s.isUse_state() ? 0 : 1;
+        }
+        return counter;
     }
 
     public int reserved_slots_for_traffic(int traffic_id) {

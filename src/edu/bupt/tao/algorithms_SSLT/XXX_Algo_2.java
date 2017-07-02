@@ -8,7 +8,6 @@ import edu.bupt.tao.edu.bupt.tao.graph_SSLT.SpanningTree;
 import edu.bupt.tao.graph.base_algorithms.Constrained_Steiner_Tree;
 import edu.bupt.tao.graph.base_algorithms.DijkstraShortestPathAlg;
 import edu.bupt.tao.graph.edu.bupt.tao.graph.resource.Resource;
-import edu.bupt.tao.graph.edu.bupt.tao.graph.resource.Slot;
 import edu.bupt.tao.graph.model.ModulationSelecting;
 import edu.bupt.tao.graph.model.Pair;
 import edu.bupt.tao.graph.model.Path;
@@ -20,8 +19,8 @@ import java.lang.Math;
 
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-import static java.lang.Math.*;
 
 /**
  * Created by Gao Tao on 2017/6/16.
@@ -43,13 +42,13 @@ public class XXX_Algo_2 {
     public XXX_Algo_2(Multicast_Graph g) {
         this.global_graph = g;
         modulation_selecting = new ModulationSelecting();
-        primary_tree_database = new HashMap<Integer, List<SpanningTree>>();
-        backup_tree_database = new HashMap<Integer, List<SpanningTree>>();
+        primary_tree_database = new ConcurrentHashMap<Integer, List<SpanningTree>>();
+        backup_tree_database = new ConcurrentHashMap<Integer, List<SpanningTree>>();
         LogRec.log.debug("Edge no:" + g.get_edge_num());
     }
 
     //return false to block mr, remember to release the occupied resource
-    public boolean procedure_for_one_MR(Multicast_Request mr) {
+    public synchronized boolean procedure_for_one_MR(Multicast_Request mr, String protect_type) {
         LogRec.log.info("1.User grouping begin!");
         Map<Datacenter, List<User_Group_Info>> ugs = new User_Grouping(global_graph, mr).grouping_algo1();
         //store all groups in a list
@@ -109,12 +108,25 @@ public class XXX_Algo_2 {
             return false;
         }
         LogRec.log.info("Here, successfully allocate resource for SLTs for MR:" + mr.id);
-        for (SpanningTree st : all_trees) {
-            st.print_tree();
-            primary_tree_database.put(mr.id, all_trees);
-        }
+//        for (SpanningTree st : all_trees) {
+//            st.print_tree();
+//
+//        }
+        primary_tree_database.put(mr.id, all_trees);
         //end for allocating resources for all SLT of MR
 
+        boolean temp_flag = true;
+        if(protect_type.equals("Sharing")){
+            temp_flag = sharing_protection(mr, all_trees);
+        }
+        else if(protect_type.equals("Full")){
+            temp_flag = full_protection(mr, all_trees);
+
+        }
+        return temp_flag;
+
+    }
+    private synchronized boolean sharing_protection(Multicast_Request mr, List<SpanningTree> all_trees){
         //now, calculate backup paths for each SD pair
         LogRec.log.info("*********************************");
         LogRec.log.info("3.Backup paths calculating begin!");
@@ -131,7 +143,7 @@ public class XXX_Algo_2 {
             BaseVertex dc = path.get_src();
             BaseVertex user = path.get_dst();
             Multicast_Graph auxiliary_g = new Multicast_Graph(global_graph, true);
-            update_graph(auxiliary_g, mr.id, path);
+            update_graph(auxiliary_g, mr.id, path, "Sharing");
             Set<Datacenter> dcs_w_s = global_graph.get_multicast_service(mr.req_service).getInDCs();
             Set<BaseVertex> dcs = new HashSet<BaseVertex>();
             //to get the set of datacenters, and not include the dst of corresponding primary path
@@ -140,6 +152,7 @@ public class XXX_Algo_2 {
                     dcs.add(d.vertex);
                 }
             }
+
             DijkstraShortestPathAlg dspa_bp = new DijkstraShortestPathAlg(auxiliary_g);
             Path backup_path = dspa_bp.get_shortest_path(dcs, user, true);
             if (backup_path != null) {
@@ -192,14 +205,16 @@ public class XXX_Algo_2 {
             }
             Collections.sort(dc_bpaths.getValue());
             //add the paths to one or several SLTs and add them to the Map
-            aggregate_btrees(dc_w_btrees, dc_bpaths.getValue());
-        }
-        LogRec.log.info("Here, successfully aggregate all backup paths to trees!");
-        for (Map.Entry<Datacenter, List<SpanningTree>> entry : dc_w_btrees.entrySet()) {
-            for (SpanningTree st : entry.getValue()) {
-                st.print_tree();
+            if(!aggregate_btrees(dc_w_btrees, dc_bpaths.getValue())){
+                return false;
             }
         }
+        LogRec.log.info("Here, successfully aggregate all backup paths to trees!");
+//        for (Map.Entry<Datacenter, List<SpanningTree>> entry : dc_w_btrees.entrySet()) {
+//            for (SpanningTree st : entry.getValue()) {
+//                st.print_tree();
+//            }
+//        }
         LogRec.log.info("*********************************");
         //now, we get all backup trees.
         LogRec.log.info("5.Reserving resource for backup trees begin!");
@@ -209,6 +224,7 @@ public class XXX_Algo_2 {
         }
         Multicast_Graph auxiliary_g_bp = new Multicast_Graph(global_graph, true);
         for (SpanningTree st : all_backup_trees) {
+//            System.out.println(st.getModulationLevel());
             int required_slots = (int) Math.ceil(mr.capacity / modulation_selecting.get_capacity(st.getModulationLevel()));
             int optimal_index = -1;
             double extra_slots = Double.MAX_VALUE;
@@ -228,15 +244,138 @@ public class XXX_Algo_2 {
             }
             else
                 return false;
-            st.print_tree();
+//            st.print_tree();
 
         }
         LogRec.log.info("Here, successfully reserve resource for all backup trees!");
-
+        backup_tree_database.put(mr.id, all_backup_trees);
         return true;
-
     }
 
+    private synchronized boolean full_protection(Multicast_Request mr, List<SpanningTree> all_trees){
+        //now, calculate backup paths for each SD pair
+        LogRec.log.info("*********************************");
+        LogRec.log.info("3.Backup paths (1+1) calculating begin!");
+        List<Path> all_primary_paths = new ArrayList<Path>();
+        for (SpanningTree tree : all_trees) {
+            all_primary_paths.addAll(tree.getPaths_of_tree());
+        }
+        //BG, to save backup paths originated from datacenter
+        Map<Datacenter, ArrayList<Path>> bp_group = new HashMap<Datacenter, ArrayList<Path>>();
+        //ascending order
+        Collections.sort(all_primary_paths);
+        for (Path path : all_primary_paths) {
+            LogRec.log.debug("Protection For Primary Path: " + path);
+            BaseVertex dc = path.get_src();
+            BaseVertex user = path.get_dst();
+            Multicast_Graph auxiliary_g = new Multicast_Graph(global_graph, true);
+            update_graph(auxiliary_g, mr.id, path, "Full");
+            Set<Datacenter> dcs_w_s = global_graph.get_multicast_service(mr.req_service).getInDCs();
+            Set<BaseVertex> dcs = new HashSet<BaseVertex>();
+            //to get the set of datacenters, and not include the dst of corresponding primary path
+            for (Datacenter d : dcs_w_s) {
+                if (d.vertex.get_id() != dc.get_id()) {
+                    dcs.add(d.vertex);
+                }
+            }
+
+            DijkstraShortestPathAlg dspa_bp = new DijkstraShortestPathAlg(auxiliary_g);
+            Path backup_path = dspa_bp.get_shortest_path(dcs, user, true);
+            if (backup_path != null) {
+                Datacenter new_dc = global_graph.getDcs().get(backup_path.get_src());
+                if (bp_group.containsKey(new_dc)) {
+                    bp_group.get(new_dc).add(backup_path);
+                } else {
+                    ArrayList<Path> paths_from_dc = new ArrayList<Path>();
+                    paths_from_dc.add(backup_path);
+                    bp_group.put(new_dc, paths_from_dc);
+
+                }
+                LogRec.log.debug("Backup Path For SRC:" + dc.get_id() + " DST:" + user.get_id());
+                LogRec.log.debug(backup_path);
+                //if we find a backup we mark the links in the path to be reserved by this traffic
+                for (int i = 0; i < backup_path.get_vertices().size() - 1; i++) {
+                    BaseVertex v = backup_path.get_vertices().get(i);
+                    BaseVertex w = backup_path.get_vertices().get(i + 1);
+                    Resource resource = global_graph.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
+                    resource.add_reserved_traffic(mr.id);
+                }
+            } else {
+//                System.out.println("CANNOT FIND BACKUP PATHS FOR: " + dc.get_id() + " TO " + user.get_id());
+                return false;
+            }
+        }
+        LogRec.log.info("Here, successfully calculate all backup paths!");
+        LogRec.log.info("*********************************");
+        //now, we begin to group the paths and aggregate them to a tree
+        LogRec.log.info("4.Backup trees constructing begin!");
+        Map<Datacenter, List<SpanningTree>> dc_w_btrees = new HashMap<Datacenter, List<SpanningTree>>();
+        //initialization
+        for (Datacenter d : global_graph.get_multicast_service(mr.req_service).getInDCs()) {
+            List<SpanningTree> temp_tree_list = new ArrayList<SpanningTree>();
+            dc_w_btrees.put(d, temp_tree_list);
+        }
+        for (Map.Entry<Datacenter, ArrayList<Path>> dc_bpaths : bp_group.entrySet()) {
+            int low_ML = get_lowML_with_paths(dc_bpaths.getValue());
+            int high_ML = get_highML_with_paths(dc_bpaths.getValue());
+            //here, we finish checking all the paths originate from the same datacenter in the list
+            LogRec.log.debug("low ML:" + low_ML + ",high ML:" + high_ML);
+            if (low_ML == high_ML) {
+                SpanningTree tree = new SpanningTree();
+                tree.setModulationLevel(low_ML);
+                tree.getPaths_of_tree().addAll(dc_bpaths.getValue());
+                List<SpanningTree> temp_trees = new ArrayList<>();
+                temp_trees.add(tree);
+                dc_w_btrees.put(dc_bpaths.getKey(), temp_trees);
+                continue;
+            }
+            Collections.sort(dc_bpaths.getValue());
+            //add the paths to one or several SLTs and add them to the Map
+            if(!aggregate_btrees(dc_w_btrees, dc_bpaths.getValue())){
+//                System.out.println("BP Tree constructing failed");
+                return false;
+            }
+        }
+        LogRec.log.info("Here, successfully aggregate all backup paths to trees!");
+//        for (Map.Entry<Datacenter, List<SpanningTree>> entry : dc_w_btrees.entrySet()) {
+//            for (SpanningTree st : entry.getValue()) {
+//                st.print_tree();
+//            }
+//        }
+        LogRec.log.info("*********************************");
+        //now, we get all backup trees.
+        LogRec.log.info("5.Reserving resource for backup trees begin!");
+        List<SpanningTree> all_backup_trees = new ArrayList<>();
+        for (Map.Entry<Datacenter, List<SpanningTree>> entry : dc_w_btrees.entrySet()) {
+            all_backup_trees.addAll(entry.getValue());
+        }
+        Multicast_Graph auxiliary_g_bp = new Multicast_Graph(global_graph, true);
+        for (SpanningTree st : all_backup_trees) {
+            LogRec.log.debug("Traffic ID:" + mr.id + ",Tree ID:" + st.getId() + "User Size:" + mr.users.length);
+            boolean success_flag = false;
+//            System.out.println(st.getModulationLevel());
+            int required_slots = (int) Math.ceil(mr.capacity / modulation_selecting.get_capacity(st.getModulationLevel()));
+            for (int i = 0; i < Resource.SLOTS_NO - required_slots + 1; i++) {
+//                System.out.println("III:" + i);
+                if(resource_can_use(st, i, required_slots, st.getModulationLevel(), mr)){
+//                    System.out.println("Available");
+                    if(allocate_resource(st, i, required_slots, st.getModulationLevel(), mr)){
+                        success_flag = true;
+                        break;
+                    }
+                }
+            }
+//            st.print_tree();
+            if(!success_flag){
+                System.out.println("BP Tree Reserving Resource failed!");
+                return false;
+            }
+
+        }
+        LogRec.log.info("Here, successfully reserve resource for all backup trees!");
+        backup_tree_database.put(mr.id, all_backup_trees);
+        return true;
+    }
     //allocate resource (occupied for primary tree)
     private boolean allocate_resource(SpanningTree tree, int start_slot, int required_slot,
                                       int modulation_level, Multicast_Request multicast_request) {
@@ -244,14 +383,16 @@ public class XXX_Algo_2 {
 //        tree.print_tree();
         for (Path path : tree.getPaths_of_tree()) {
             Resource res;
-            path.setStartSlots(start_slot);
-            path.setUseSlots(required_slot);
+//            path.setStartSlots(start_slot);
+//            path.setUseSlots(required_slot);
             path.setModulationLevel(modulation_level);
             for (int i = 0; i < path.get_vertices().size() - 1; i++) {
                 res = global_graph.get_vertex_pair_weight_index().
                         get(new Pair<Integer, Integer>(path.get_vertices().get(i).get_id(), path.get_vertices().get(i + 1).get_id()));
+                LogRec.log.debug("v->w:" + res.getStart_index() + "->" + res.getEnd_index());
+
                 for (int j = start_slot; j < start_slot + required_slot; j++) {
-                    LogRec.log.debug("j:" + j);
+                    LogRec.log.debug("start slot:" + j);
                     //if the slot has been occupied by other traffic
                     if (!res.slot_can_use(j, multicast_request.id, tree.getId())) {
                         LogRec.log.error("ERROR: SLOT[" + j + "] HAS BEEN OCCUPIED!");
@@ -259,6 +400,35 @@ public class XXX_Algo_2 {
                         return false;
                     }
                     res.use_slot(j, multicast_request.id, tree.getId(), 1);
+                }
+            }
+        }
+        return true;
+
+    }
+    //check whether resource can be used
+    //allocate resource (occupied for primary tree)
+    private boolean resource_can_use(SpanningTree tree, int start_slot, int required_slot,
+                                      int modulation_level, Multicast_Request multicast_request) {
+//        boolean result = true;
+//        tree.print_tree();
+        for (Path path : tree.getPaths_of_tree()) {
+            Resource res;
+//            path.setStartSlots(start_slot);
+//            path.setUseSlots(required_slot);
+//            path.setModulationLevel(modulation_level);
+            for (int i = 0; i < path.get_vertices().size() - 1; i++) {
+                res = global_graph.get_vertex_pair_weight_index().
+                        get(new Pair<Integer, Integer>(path.get_vertices().get(i).get_id(), path.get_vertices().get(i + 1).get_id()));
+                for (int j = start_slot; j < start_slot + required_slot; j++) {
+                    LogRec.log.debug("j:" + j);
+                    //if the slot has been occupied by other traffic
+                    if (!res.slot_can_use(j, multicast_request.id, tree.getId())) {
+//                        LogRec.log.error("ERROR: SLOT[" + j + "] HAS BEEN OCCUPIED!");
+//                        release_occupied_slots(tree, start_slot, required_slot, multicast_request);
+                        return false;
+                    }
+//                    res.use_slot(j, multicast_request.id, tree.getId(), 1);
                 }
             }
         }
@@ -284,10 +454,17 @@ public class XXX_Algo_2 {
 //    }
 
     //release all slots occupied or reserved by a MR
-    private void release_occupied_slots(Multicast_Request mr) {
+    public void release_occupied_slots(Multicast_Request mr) {
         for (Pair<Integer, Integer> pair : global_graph.get_pair_list()) {
             global_graph.get_vertex_pair_weight_index().get(pair).set_slots_free_for_MR(mr.id);
-            global_graph.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(pair.o2, pair.o1)).set_slots_free_for_MR(mr.id);
+            global_graph.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>
+                    (pair.o2, pair.o1)).set_slots_free_for_MR(mr.id);
+        }
+        if(primary_tree_database.containsKey(mr.id)){
+            primary_tree_database.remove(mr.id);
+        }
+        if(backup_tree_database.containsKey(mr.id)){
+            backup_tree_database.remove(mr.id);
         }
     }
 
@@ -303,69 +480,98 @@ public class XXX_Algo_2 {
             res = global_graph.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>((Integer) pair.o2, (Integer) pair.o1));
             total_used_slots += res.total_used_slots();
         }
+
         LogRec.log.info("Total used slots:" + total_used_slots + ",total slots:" + total_slots);
         rate = (double) total_used_slots / total_slots;
+//        System.out.println("Resource Utilization:" + rate);
         LogRec.log.info("Resource Utilization:" + rate);
         return rate;
     }
 
-    //update cost according the Equations
-    private void update_graph(Multicast_Graph mg, int traffic_id, Path p) {
+    //update cost according the Equations,
+    private void update_graph(Multicast_Graph mg, int traffic_id, Path p, String protect_type) {
         //path p denotes the primary path
         for (Pair<Integer, Integer> pair : mg.get_pair_list()) {
-            //firstly, we set the cost used by other primary paths to a small value
             Resource res = mg.get_vertex_pair_weight_index().get(pair);
-            if (res.occupied_slots_for_traffic(traffic_id) > 0) {
-                res.setCost(epsilon);
+            if(protect_type.equals("Sharing")){
+                //firstly, we set the cost used by other primary paths to a small value
+
+                if (res.occupied_slots_for_traffic(traffic_id) > 0) {
+                    res.setCost(epsilon);
+                }
+                res = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(pair.o2, pair.o1));
+                if (res.occupied_slots_for_traffic(traffic_id) > 0) {
+                    res.setCost(epsilon);
+                }
+                //secondly, we set the cost of other links
+                Set<Integer> joint_paths = this.get_joint_bp_paths(traffic_id, p);
+                int slots_no = res.reserved_slots_except_joint(joint_paths);
+                double new_cost = res.getCost() - (double) slots_no / Resource.SLOTS_NO;
+                if (slots_no > 0) {
+                    res.setCost(new_cost);
+                }
+                res = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(pair.o2, pair.o1));
+                slots_no = res.reserved_slots_except_joint(joint_paths);
+                new_cost = res.getCost() - (double) slots_no / Resource.SLOTS_NO;
+                if (slots_no > 0) {
+                    res.setCost(new_cost);
+                }
+
             }
-            res = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(pair.o2, pair.o1));
-            if (res.occupied_slots_for_traffic(traffic_id) > 0) {
-                res.setCost(epsilon);
-            }
-            //secondly, we set the cost of other links
-            Set<Integer> joint_paths = this.get_joint_bp_paths(traffic_id, p);
-            int slots_no = res.reserved_slots_except_joint(joint_paths);
-            double new_cost = res.getCost() - (double) slots_no / Resource.SLOTS_NO;
-            if (slots_no > 0) {
-                res.setCost(new_cost);
-            }
-            res = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(pair.o2, pair.o1));
-            slots_no = res.reserved_slots_except_joint(joint_paths);
-            new_cost = res.getCost() - (double) slots_no / Resource.SLOTS_NO;
-            if (slots_no > 0) {
-                res.setCost(new_cost);
-            }
-            //thirdly, we set the cost used by other backup paths of the same traffic to 0
-            res = mg.get_vertex_pair_weight_index().get(pair);
-            if (res.contains_reserved_traffic(traffic_id)) {
-                res.setCost(0);
-            }
-            res = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(pair.o2, pair.o1));
-            if (res.reserved_slots_for_traffic(traffic_id) > 0) {
-                res.setCost(0);
-            }
-        }
-        //finally, we set the cost of the nodes (v) in path p to INF, expect the src and the dst
-        //we put this procedure at last to avoid the cast where although we set the link cost to INF, it will be changed by other procedures.
-        for (int i = 1; i < p.get_vertices().size() - 1; i++) {
-            BaseVertex v = p.get_vertices().get(i);
-            for (BaseVertex w : mg.get_adjacent_vertices(v)) {
-                Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
-                resource.setCost(Double.MAX_VALUE);
-            }
-            for (BaseVertex w : mg.get_precedent_vertices(v)) {
-                Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
-                resource.setCost(Double.MAX_VALUE);
-            }
-        }
-        //here is the case that the path has only two nodes(src and dst)
-        if (p.get_vertices().size() == 2) {
-            LogRec.log.debug("Update graph!");
+            else if(protect_type.equals("Full")){
+                //thirdly, we set the cost used by other backup paths of the same traffic to 0
+                res = mg.get_vertex_pair_weight_index().get(pair);
+                if (res.contains_reserved_traffic(traffic_id)) {
+                    res.setCost(0);
+                }
+                res = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(pair.o2, pair.o1));
+                if (res.reserved_slots_for_traffic(traffic_id) > 0) {
+                    res.setCost(0);
+                }
+                //finally, we set the cost of the nodes (v) in path p to INF, expect the src and the dst
+                //we put this procedure at last to avoid the cast where although we set the link cost to INF,
+                // it will be changed by other procedures.
+                //node-disjointed
+//        for (int i = 1; i < p.get_vertices().size() - 1; i++) {
+//            BaseVertex v = p.get_vertices().get(i);
+//            for (BaseVertex w : mg.get_adjacent_vertices(v)) {
+//                Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
+//                resource.setCost(Double.MAX_VALUE);
+//            }
+//            for (BaseVertex w : mg.get_precedent_vertices(v)) {
+//                Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
+//                resource.setCost(Double.MAX_VALUE);
+//            }
+//        }
+                //link-disjointed
+                for (int i = 0; i < p.get_vertices().size() - 1; i++) {
+                    BaseVertex v = p.get_vertices().get(i);
+                    BaseVertex w = p.get_vertices().get(i + 1);
+//            BaseVertex v = p.get_vertices().get(i);
+                    Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
+                    resource.setCost(Double.MAX_VALUE);
+                    resource = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(w.get_id(), v.get_id()));
+                    resource.setCost(Double.MAX_VALUE);
+                }
+
+                //here is the case that the path has only two nodes(src and dst)
+                if (p.get_vertices().size() == 2) {
+                    LogRec.log.debug("Update graph!");
 //            LogRec.log.debug("src:" + p.get_src().get_id() + ",dst:" + p.get_dst().get_id());
-            Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(p.get_src().get_id(), p.get_dst().get_id()));
-            resource.setCost(Double.MAX_VALUE);
+                    Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(p.get_src().get_id(), p.get_dst().get_id()));
+                    resource.setCost(Double.MAX_VALUE);
+                }
+            }
+
+
         }
 
+
+    }
+    //return tree number including primary and backup for calculating
+    public int get_tree_num(Multicast_Request mr){
+        int bp_tree_num = backup_tree_database.isEmpty()? 0 : backup_tree_database.size();
+        return primary_tree_database.get(mr.id).size() + bp_tree_num;
     }
 
 
@@ -399,7 +605,7 @@ public class XXX_Algo_2 {
     }
 
     //this function aggregate the paths to one or several SLTs, which are originated from the same datacenter
-    private void aggregate_btrees(Map<Datacenter, List<SpanningTree>> dc_w_btrees, List<Path> paths) {
+    private boolean aggregate_btrees(Map<Datacenter, List<SpanningTree>> dc_w_btrees, List<Path> paths) {
         Datacenter dc = global_graph.getDcs().get(paths.get(0).get_src());
         for (Path path : paths) {
             LogRec.log.debug("Aggregate path:" + path);
@@ -416,6 +622,7 @@ public class XXX_Algo_2 {
                     if (modulation_selecting.generate_Smn(m, n + 1) >= path.get_weight()) {
                         dc_w_btrees.get(dc).get(i - 1).add_path(path);
                         path_flag = true;
+//                        System.out.println("1:" + dc_w_btrees.get(dc).get(i - 1).getModulationLevel());
                         break;
                     }
                 } else {
@@ -424,6 +631,7 @@ public class XXX_Algo_2 {
                     tree.add_path(path);
                     //set the modulation level
                     tree.setModulationLevel(modulation_selecting.modulation_select(path.get_weight()));
+//                    System.out.println("2:" + tree.getModulationLevel());
                     dc_w_btrees.get(dc).add(tree);
                     path_flag = true;
                     break;
@@ -446,24 +654,58 @@ public class XXX_Algo_2 {
                 if (final_tree != null) {
                     final_tree.add_path(path);
                     reset_modulation(final_tree);
+                    if(final_tree.getModulationLevel() != -1){
+//                        System.out.println("3:" + final_tree.getModulationLevel());
+//                        System.out.println("Dis:" + final_tree.get_longest_dis() +" Size:" + final_tree.getPaths_of_tree().size());
+                        continue;
+                    }
+                    else{
+                        final_tree.getPaths_of_tree().remove(path);
+                        reset_modulation(final_tree);
+                    }
                 }
                 //if none tree shares links with this path, we select the tree with minimum users(path)
-                else {
-                    int smallest_users = Integer.MAX_VALUE;
-                    SpanningTree smallest_tree = dc_w_btrees.get(dc).get(0);
-                    for (SpanningTree tree : dc_w_btrees.get(dc)) {
-                        if (smallest_users < tree.getPaths_of_tree().size()) {
-                            smallest_tree = tree;
-                            smallest_users = tree.getPaths_of_tree().size();
-                        }
-
+                int smallest_users = Integer.MAX_VALUE;
+                SpanningTree smallest_tree = dc_w_btrees.get(dc).get(0);
+                for (SpanningTree tree : dc_w_btrees.get(dc)) {
+                    if (smallest_users < tree.getPaths_of_tree().size()) {
+                        smallest_tree = tree;
+                        smallest_users = tree.getPaths_of_tree().size();
                     }
-                    smallest_tree.add_path(path);
-                    reset_modulation(smallest_tree);
-                }
 
+                }
+                smallest_tree.add_path(path);
+                reset_modulation(smallest_tree);
+//                System.out.println("4:" + smallest_tree.getModulationLevel());
+                if(smallest_tree.getModulationLevel() != -1){
+                    continue;
+                }
+                else{
+                    //if we still cannot get a tree that satisfies Smn, then we choose anyone can be used
+                    boolean success = false;
+                    smallest_tree.getPaths_of_tree().remove(path);
+                    reset_modulation(smallest_tree);
+                    SpanningTree available_tree = dc_w_btrees.get(dc).get(0);
+                    for (SpanningTree tree : dc_w_btrees.get(dc)) {
+                        tree.add_path(path);
+                        reset_modulation(tree);
+                        if(tree.getModulationLevel() != -1){
+                            success = true;
+                            break;
+                        }
+                        else{
+                            tree.getPaths_of_tree().remove(path);
+                            reset_modulation(tree);
+                        }
+                    }
+                    if(!success){
+                        LogRec.log.debug("FATAL ERROR: NO AVAILABLE ML");
+                        return false;
+                    }
+                }
             }
         }
+        return true;
     }
 
     //get the number of shared links between all paths in tree and the path
@@ -483,7 +725,7 @@ public class XXX_Algo_2 {
     }
 
     private void reset_modulation(SpanningTree tree) {
-        int m = tree.getModulationLevel();
+        int m = this.modulation_selecting.ModulationFormats.size();
         int n = tree.getPaths_of_tree().size();
         double s_mn = modulation_selecting.generate_Smn(m, n);
         double longest_dis = tree.get_longest_dis();

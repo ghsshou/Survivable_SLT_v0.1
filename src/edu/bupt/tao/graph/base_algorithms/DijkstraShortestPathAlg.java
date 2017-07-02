@@ -31,6 +31,7 @@
 
 package edu.bupt.tao.graph.base_algorithms;
 
+import edu.bupt.tao.LogRec;
 import edu.bupt.tao.graph.model.Graph;
 import edu.bupt.tao.graph.model.Path;
 import edu.bupt.tao.graph.model.abstracts.BaseGraph;
@@ -220,6 +221,9 @@ public class DijkstraShortestPathAlg
 		BaseVertex dst;
 		int index = 0;
 		double total_weight_or_cost = 0;
+		if(vertex_list.isEmpty()){
+			System.out.println("FATAL ERROR! CANNOT FIND PATH:" + source_vertex.get_id() + "->" + sink_vertex.get_id());
+		}
 		do{
 			src = vertex_list.get(index);
 
@@ -359,6 +363,10 @@ public class DijkstraShortestPathAlg
 	by Tao, to calculate a set of dsts(datacenters) to a certain user and return the shortest one
 	 */
 	public Path get_shortest_path(Set<BaseVertex> srcs, BaseVertex sink_vertex, boolean use_cost){
+		LogRec.log.debug("USER:" + sink_vertex);
+		for(BaseVertex v: srcs){
+			LogRec.log.debug("DC:" + v.get_id());
+		}
 		Path path = null;
 		Path shortest_path = null;
 		double min_value = Double.MAX_VALUE;

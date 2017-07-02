@@ -21,7 +21,7 @@ public class Multicast_Graph extends VariableGraph {
     public Map<BaseVertex,Datacenter> dcs = new HashMap<BaseVertex, Datacenter>();
     public Map<Integer,Multicast_Service> multicast_services = new HashMap<Integer, Multicast_Service>();
     public static int INF  = 99999;
-    int multicast_service_min_copies = 2;
+    int multicast_service_min_copies = 3;
     public Multicast_Graph() {
         super();
     }

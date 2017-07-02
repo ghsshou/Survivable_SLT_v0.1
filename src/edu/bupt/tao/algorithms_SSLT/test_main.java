@@ -22,19 +22,19 @@ public class test_main {
 
     public static void main(String[] args) {
 
-        Multicast_Graph multicast_graph = new Multicast_Graph("data/cost239", false);
-        Datacenter dc1 = new Datacenter(multicast_graph.get_vertex(0),100);
-        Datacenter dc2 = new Datacenter(multicast_graph.get_vertex(3),200);
-        Datacenter dc3 = new Datacenter(multicast_graph.get_vertex(8),200);
-
-        multicast_graph.addDc(dc1);
-        multicast_graph.addDc(dc2);
-        multicast_graph.addDc(dc3);
-        Multicast_Service multicast_service_1 = new Multicast_Service(0,20);
-        multicast_service_1.addCopyToDC(dc1);
-        multicast_service_1.addCopyToDC(dc2);
-        multicast_service_1.addCopyToDC(dc3);
-        multicast_graph.addMulticast_services(multicast_service_1);
+//        Multicast_Graph multicast_graph = new Multicast_Graph("data/cost239", false);
+//        Datacenter dc1 = new Datacenter(multicast_graph.get_vertex(0),100);
+//        Datacenter dc2 = new Datacenter(multicast_graph.get_vertex(3),200);
+//        Datacenter dc3 = new Datacenter(multicast_graph.get_vertex(8),200);
+//
+//        multicast_graph.addDc(dc1);
+//        multicast_graph.addDc(dc2);
+//        multicast_graph.addDc(dc3);
+//        Multicast_Service multicast_service_1 = new Multicast_Service(0,20);
+//        multicast_service_1.addCopyToDC(dc1);
+//        multicast_service_1.addCopyToDC(dc2);
+//        multicast_service_1.addCopyToDC(dc3);
+//        multicast_graph.addMulticast_services(multicast_service_1);
 
 //        int[] req_users = new int[]{1, 5, 10, 9, 2, 6, 7};
 //        Multicast_Request multicast_request = new Multicast_Request(0,0,req_users,30);
@@ -55,20 +55,38 @@ public class test_main {
 
 
 
-        int[] users = new int[]{1, 5, 2, 4};
-        Multicast_Request test_mr = new Multicast_Request(1,0, users, 50);
-        XXX_Algo_2 algo_2 = new XXX_Algo_2(multicast_graph);
-        algo_2.procedure_for_one_MR(test_mr);
-        algo_2.get_current_resource_utilization();
-        LogRec.log.info("*****************TRAFFIC ID 2***********************************************************");
-//        int[] users_2 = new int[]{1, 5, 10, 9, 2, 6, 7};
-        int[] users_2 = new int[]{1, 5, 2, 4};
-        Multicast_Request test_mr_2 = new Multicast_Request(2,0, users, 50);
-        algo_2.procedure_for_one_MR(test_mr_2);
-        algo_2.get_current_resource_utilization();
+//        int[] users = new int[]{2,7,6,4,5,1};
+//        Multicast_Request test_mr = new Multicast_Request(1,0, users, 50);
+//        XXX_Algo_2 algo_2 = new XXX_Algo_2(multicast_graph);
+//        algo_2.procedure_for_one_MR(test_mr, "Full");
+//        algo_2.get_current_resource_utilization();
+////        algo_2.release_occupied_slots(test_mr);
+//        LogRec.log.info("*****************TRAFFIC ID 2***********************************************************");
+////        int[] users_2 = new int[]{1, 5, 10, 9, 2, 6, 7};
+//        int[] users_2 = new int[]{1, 5, 2, 4};
+//        Multicast_Request test_mr_2 = new Multicast_Request(2,0, users, 50);
+//        algo_2.procedure_for_one_MR(test_mr_2, "Full");
+//        algo_2.get_current_resource_utilization();
 
 
+        System.out.println("Sharing");
+        long time_1 = System.currentTimeMillis();
+        MainProcedure mp = new MainProcedure(0.01,0.0001,2, 2, "Sharing");
+        mp.execute_function();
+        System.out.println("TIME CONSUMPTION:" + (System.currentTimeMillis() - time_1));
 
+        System.out.println("Full");
+        long time_2 = System.currentTimeMillis();
+        MainProcedure mp2 = new MainProcedure(0.01,0.0001,2, 2, "Full");
+        mp2.execute_function();
+        System.out.println("TIME CONSUMPTION:" + (System.currentTimeMillis() - time_2));
 
+        System.out.println("No");
+        long time_3 = System.currentTimeMillis();
+        MainProcedure mp3 = new MainProcedure(0.01,0.0001,2, 2, "No");
+        mp3.execute_function();
+        System.out.println("TIME CONSUMPTION:" + (System.currentTimeMillis() - time_3));
+
+        System.exit(0);
     }
 }
