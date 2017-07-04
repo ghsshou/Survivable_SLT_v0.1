@@ -29,9 +29,26 @@ public class MainProcedure {
     private TrafficManager traffic_manager;
     private Timer timer = new Timer();
     private int success_num = 0;
-    private long tree_num = 0;
+    private int tree_num = 0;
     //about resource utilization recording
     private double[] resource_utilization;
+
+    public double getFinal_resource_utilization() {
+        return final_resource_utilization;
+    }
+
+    public double getFinal_blocking_probability() {
+        return final_blocking_probability;
+    }
+
+    public int getFinal_tree_num() {
+        return final_tree_num;
+    }
+
+    //recording result
+    double final_resource_utilization;
+    double final_blocking_probability;
+    int final_tree_num;
 
 
 
@@ -71,11 +88,15 @@ public class MainProcedure {
 
     }
     public void execute_function(){
-        System.out.println("Traffic Load:" + (int)(lambda / mu));
+//        System.out.println("Traffic Load:" + (int)(lambda / mu));
         traffic_send(this.traffic_manager);
-        System.out.println("Resource Utilization\tBlocking Probability\tTotal Tree Number");
-        System.out.println(String.format("%.4f",get_avaerage(resource_utilization)) + "\t" +
-                String.format("%.4f",(1 - (double)success_num / traffic_manager.get_traffic_no())) + "\t" + tree_num);
+//        System.out.println("Resource Utilization\tBlocking Probability\tTotal Tree Number");
+        this.final_resource_utilization = get_avaerage(resource_utilization);
+        this.final_blocking_probability = 1 - (double)success_num / traffic_manager.get_traffic_no();
+        this.final_tree_num = tree_num;
+
+//        System.out.println(String.format("%.4f",get_avaerage(resource_utilization)) + "\t" +
+//                String.format("%.4f",(1 - (double)success_num / traffic_manager.get_traffic_no())) + "\t" + tree_num);
 
     }
 
@@ -83,16 +104,16 @@ public class MainProcedure {
         for(int i = 0; i < traffic_manager.get_traffic_no(); i++){
 //            System.out.println("MR[" + i + "]," + "Duetime" + traffic_manager.getPreTraffics().get(i).due_time);
             LogRec.log.debug("MR[" + i + "]");
-            if(i % 100 == 0){
-                System.out.println("Finish:" + 100.0 * i / traffic_manager.get_traffic_no() + "%");
-            }
+//            if(i % 100 == 0){
+//                System.out.println("Finish:" + 100.0 * i / traffic_manager.get_traffic_no() + "%");
+//            }
             this.handle_traffic(traffic_manager.getPreTraffics().get(i), TrafficManager.BUILD);
             if(i >= no_record_num && i < traffic_manager.get_traffic_no() - no_record_num ){
                 resource_utilization[i - no_record_num] = xxx_algo_2.get_current_resource_utilization();
             }
 
         }
-        System.out.println("BP:" + (1 - (double)success_num / traffic_manager.get_traffic_no()));
+//        System.out.println("BP:" + (1 - (double)success_num / traffic_manager.get_traffic_no()));
 
     }
     private synchronized void handle_traffic(Multicast_Request mr_to_handle, boolean build_or_delete){
@@ -117,16 +138,15 @@ public class MainProcedure {
 
 
 
-    public DeleTrafficTask get_deletrafic_task(Multicast_Request t)
+    private DeleTrafficTask get_deletrafic_task(Multicast_Request t)
     {
-        DeleTrafficTask del_trf = new DeleTrafficTask(t);
-        return del_trf;
+        return new DeleTrafficTask(t);
     }
 
     class DeleTrafficTask extends TimerTask
     {
         Multicast_Request _task_tt;
-        public DeleTrafficTask(Multicast_Request tt)
+        DeleTrafficTask(Multicast_Request tt)
         {
             _task_tt = tt;
         }
@@ -139,8 +159,8 @@ public class MainProcedure {
     }
     private double get_avaerage(double[] data){
         double total = 0;
-        for(int i = 0; i < data.length; i++){
-            total += data[i];
+        for (double aData : data) {
+            total += aData;
         }
         return total / data.length;
     }

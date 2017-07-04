@@ -28,22 +28,22 @@ import java.util.concurrent.ConcurrentHashMap;
  * XXX denotes that the algorithm is not named yet
  */
 public class XXX_Algo_2 {
-    Multicast_Graph global_graph;
-    ModulationSelecting modulation_selecting;
-    static final double epsilon = 0.05;//the small value used to share links between backup paths and primary paths.
-    static final int MB = 2;//the maximum backup trees can be constructed originated from a datacenter
-    Map<Integer, List<SpanningTree>> primary_tree_database;//store all primary trees for all traffics in the networks.
-    Map<Integer, List<SpanningTree>> backup_tree_database;//store all backup trees for all traffics in the networks.
+    private Multicast_Graph global_graph;
+    private ModulationSelecting modulation_selecting;
+    private static final double epsilon = 0.05;//the small value used to share links between backup paths and primary paths.
+    private static final int MB = 2;//the maximum backup trees can be constructed originated from a datacenter
+    private Map<Integer, List<SpanningTree>> primary_tree_database;//store all primary trees for all traffics in the networks.
+    private Map<Integer, List<SpanningTree>> backup_tree_database;//store all backup trees for all traffics in the networks.
 
+    private static String sharing = "Sharing";
+    private static String full = "Full";
 
-    public XXX_Algo_2() {
-    }
 
     public XXX_Algo_2(Multicast_Graph g) {
         this.global_graph = g;
         modulation_selecting = new ModulationSelecting();
-        primary_tree_database = new ConcurrentHashMap<Integer, List<SpanningTree>>();
-        backup_tree_database = new ConcurrentHashMap<Integer, List<SpanningTree>>();
+        primary_tree_database = new ConcurrentHashMap<>();
+        backup_tree_database = new ConcurrentHashMap<>();
         LogRec.log.debug("Edge no:" + g.get_edge_num());
     }
 
@@ -52,19 +52,17 @@ public class XXX_Algo_2 {
         LogRec.log.info("1.User grouping begin!");
         Map<Datacenter, List<User_Group_Info>> ugs = new User_Grouping(global_graph, mr).grouping_algo1();
         //store all groups in a list
-        List<User_Group_Info> all_groups = new ArrayList<User_Group_Info>();
+        List<User_Group_Info> all_groups = new ArrayList<>();
 
         for (Map.Entry<Datacenter, List<User_Group_Info>> entry : ugs.entrySet()) {
-            for (User_Group_Info ugi : entry.getValue()) {
-                all_groups.add(ugi);
-            }
+            all_groups.addAll(entry.getValue());
         }
         LogRec.log.info("User grouping finished! Tree number:" + all_groups.size());
         LogRec.log.info("*********************************");
 
         //now, begin calculating for primary tree
         LogRec.log.info("2.Primary tree calculating begin!");
-        List<SpanningTree> all_trees = new ArrayList<SpanningTree>();//
+        List<SpanningTree> all_trees = new ArrayList<>();//
         for (User_Group_Info ugi : all_groups) {
             boolean allocated_flag = false;
             for (int m = ugi.modulation_level; m >= 1 && !allocated_flag; m--) {
@@ -82,7 +80,6 @@ public class XXX_Algo_2 {
                     SWP.recover_removed_edges();
                     if (tree == null) {
                         LogRec.log.debug("TREE is NULL");
-                        continue;
                     } else {
                         //Generally, after searching SWP, the procedure of allocating resource should be executed successfully
                         if (allocate_resource(tree, slot_i, required_slots, m, mr)) {
@@ -108,18 +105,23 @@ public class XXX_Algo_2 {
             return false;
         }
         LogRec.log.info("Here, successfully allocate resource for SLTs for MR:" + mr.id);
+
+//        System.out.println("Primary Tree!!!!");
 //        for (SpanningTree st : all_trees) {
 //            st.print_tree();
 //
 //        }
+//        System.out.println("Now Backup Tree!!!!");
+
+        
         primary_tree_database.put(mr.id, all_trees);
         //end for allocating resources for all SLT of MR
 
         boolean temp_flag = true;
-        if(protect_type.equals("Sharing")){
+        if(sharing.equals(protect_type)){
             temp_flag = sharing_protection(mr, all_trees);
         }
-        else if(protect_type.equals("Full")){
+        else if(full.equals(protect_type)){
             temp_flag = full_protection(mr, all_trees);
 
         }
@@ -130,12 +132,12 @@ public class XXX_Algo_2 {
         //now, calculate backup paths for each SD pair
         LogRec.log.info("*********************************");
         LogRec.log.info("3.Backup paths calculating begin!");
-        List<Path> all_primary_paths = new ArrayList<Path>();
+        List<Path> all_primary_paths = new ArrayList<>();
         for (SpanningTree tree : all_trees) {
             all_primary_paths.addAll(tree.getPaths_of_tree());
         }
         //BG, to save backup paths originated from datacenter
-        Map<Datacenter, ArrayList<Path>> bp_group = new HashMap<Datacenter, ArrayList<Path>>();
+        Map<Datacenter, ArrayList<Path>> bp_group = new HashMap<>();
         //ascending order
         Collections.sort(all_primary_paths);
         for (Path path : all_primary_paths) {
@@ -143,9 +145,9 @@ public class XXX_Algo_2 {
             BaseVertex dc = path.get_src();
             BaseVertex user = path.get_dst();
             Multicast_Graph auxiliary_g = new Multicast_Graph(global_graph, true);
-            update_graph(auxiliary_g, mr.id, path, "Sharing");
+            update_graph(auxiliary_g, mr.id, path, sharing);
             Set<Datacenter> dcs_w_s = global_graph.get_multicast_service(mr.req_service).getInDCs();
-            Set<BaseVertex> dcs = new HashSet<BaseVertex>();
+            Set<BaseVertex> dcs = new HashSet<>();
             //to get the set of datacenters, and not include the dst of corresponding primary path
             for (Datacenter d : dcs_w_s) {
                 if (d.vertex.get_id() != dc.get_id()) {
@@ -160,7 +162,7 @@ public class XXX_Algo_2 {
                 if (bp_group.containsKey(new_dc)) {
                     bp_group.get(new_dc).add(backup_path);
                 } else {
-                    ArrayList<Path> paths_from_dc = new ArrayList<Path>();
+                    ArrayList<Path> paths_from_dc = new ArrayList<>();
                     paths_from_dc.add(backup_path);
                     bp_group.put(new_dc, paths_from_dc);
 
@@ -171,7 +173,7 @@ public class XXX_Algo_2 {
                 for (int i = 0; i < backup_path.get_vertices().size() - 1; i++) {
                     BaseVertex v = backup_path.get_vertices().get(i);
                     BaseVertex w = backup_path.get_vertices().get(i + 1);
-                    Resource resource = global_graph.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
+                    Resource resource = global_graph.get_vertex_pair_weight_index().get(new Pair<>(v.get_id(), w.get_id()));
                     resource.add_reserved_traffic(mr.id);
                 }
             } else {
@@ -183,10 +185,10 @@ public class XXX_Algo_2 {
         LogRec.log.info("*********************************");
         //now, we begin to group the paths and aggregate them to a tree
         LogRec.log.info("4.Backup trees constructing begin!");
-        Map<Datacenter, List<SpanningTree>> dc_w_btrees = new HashMap<Datacenter, List<SpanningTree>>();
+        Map<Datacenter, List<SpanningTree>> dc_w_btrees = new HashMap<>();
         //initialization
         for (Datacenter d : global_graph.get_multicast_service(mr.req_service).getInDCs()) {
-            List<SpanningTree> temp_tree_list = new ArrayList<SpanningTree>();
+            List<SpanningTree> temp_tree_list = new ArrayList<>();
             dc_w_btrees.put(d, temp_tree_list);
         }
         for (Map.Entry<Datacenter, ArrayList<Path>> dc_bpaths : bp_group.entrySet()) {
@@ -256,12 +258,12 @@ public class XXX_Algo_2 {
         //now, calculate backup paths for each SD pair
         LogRec.log.info("*********************************");
         LogRec.log.info("3.Backup paths (1+1) calculating begin!");
-        List<Path> all_primary_paths = new ArrayList<Path>();
+        List<Path> all_primary_paths = new ArrayList<>();
         for (SpanningTree tree : all_trees) {
             all_primary_paths.addAll(tree.getPaths_of_tree());
         }
         //BG, to save backup paths originated from datacenter
-        Map<Datacenter, ArrayList<Path>> bp_group = new HashMap<Datacenter, ArrayList<Path>>();
+        Map<Datacenter, ArrayList<Path>> bp_group = new HashMap<>();
         //ascending order
         Collections.sort(all_primary_paths);
         for (Path path : all_primary_paths) {
@@ -271,7 +273,7 @@ public class XXX_Algo_2 {
             Multicast_Graph auxiliary_g = new Multicast_Graph(global_graph, true);
             update_graph(auxiliary_g, mr.id, path, "Full");
             Set<Datacenter> dcs_w_s = global_graph.get_multicast_service(mr.req_service).getInDCs();
-            Set<BaseVertex> dcs = new HashSet<BaseVertex>();
+            Set<BaseVertex> dcs = new HashSet<>();
             //to get the set of datacenters, and not include the dst of corresponding primary path
             for (Datacenter d : dcs_w_s) {
                 if (d.vertex.get_id() != dc.get_id()) {
@@ -286,7 +288,7 @@ public class XXX_Algo_2 {
                 if (bp_group.containsKey(new_dc)) {
                     bp_group.get(new_dc).add(backup_path);
                 } else {
-                    ArrayList<Path> paths_from_dc = new ArrayList<Path>();
+                    ArrayList<Path> paths_from_dc = new ArrayList<>();
                     paths_from_dc.add(backup_path);
                     bp_group.put(new_dc, paths_from_dc);
 
@@ -297,7 +299,7 @@ public class XXX_Algo_2 {
                 for (int i = 0; i < backup_path.get_vertices().size() - 1; i++) {
                     BaseVertex v = backup_path.get_vertices().get(i);
                     BaseVertex w = backup_path.get_vertices().get(i + 1);
-                    Resource resource = global_graph.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
+                    Resource resource = global_graph.get_vertex_pair_weight_index().get(new Pair<>(v.get_id(), w.get_id()));
                     resource.add_reserved_traffic(mr.id);
                 }
             } else {
@@ -309,10 +311,10 @@ public class XXX_Algo_2 {
         LogRec.log.info("*********************************");
         //now, we begin to group the paths and aggregate them to a tree
         LogRec.log.info("4.Backup trees constructing begin!");
-        Map<Datacenter, List<SpanningTree>> dc_w_btrees = new HashMap<Datacenter, List<SpanningTree>>();
+        Map<Datacenter, List<SpanningTree>> dc_w_btrees = new HashMap<>();
         //initialization
         for (Datacenter d : global_graph.get_multicast_service(mr.req_service).getInDCs()) {
-            List<SpanningTree> temp_tree_list = new ArrayList<SpanningTree>();
+            List<SpanningTree> temp_tree_list = new ArrayList<>();
             dc_w_btrees.put(d, temp_tree_list);
         }
         for (Map.Entry<Datacenter, ArrayList<Path>> dc_bpaths : bp_group.entrySet()) {
@@ -357,9 +359,11 @@ public class XXX_Algo_2 {
             int required_slots = (int) Math.ceil(mr.capacity / modulation_selecting.get_capacity(st.getModulationLevel()));
             for (int i = 0; i < Resource.SLOTS_NO - required_slots + 1; i++) {
 //                System.out.println("III:" + i);
-                if(resource_can_use(st, i, required_slots, st.getModulationLevel(), mr)){
+                if(resource_can_use(st, i, required_slots, mr)){
 //                    System.out.println("Available");
                     if(allocate_resource(st, i, required_slots, st.getModulationLevel(), mr)){
+                        st.setStartSlots(i);
+                        st.setUseSlots(required_slots);
                         success_flag = true;
                         break;
                     }
@@ -388,7 +392,7 @@ public class XXX_Algo_2 {
             path.setModulationLevel(modulation_level);
             for (int i = 0; i < path.get_vertices().size() - 1; i++) {
                 res = global_graph.get_vertex_pair_weight_index().
-                        get(new Pair<Integer, Integer>(path.get_vertices().get(i).get_id(), path.get_vertices().get(i + 1).get_id()));
+                        get(new Pair<>(path.get_vertices().get(i).get_id(), path.get_vertices().get(i + 1).get_id()));
                 LogRec.log.debug("v->w:" + res.getStart_index() + "->" + res.getEnd_index());
 
                 for (int j = start_slot; j < start_slot + required_slot; j++) {
@@ -409,7 +413,7 @@ public class XXX_Algo_2 {
     //check whether resource can be used
     //allocate resource (occupied for primary tree)
     private boolean resource_can_use(SpanningTree tree, int start_slot, int required_slot,
-                                      int modulation_level, Multicast_Request multicast_request) {
+                                      Multicast_Request multicast_request) {
 //        boolean result = true;
 //        tree.print_tree();
         for (Path path : tree.getPaths_of_tree()) {
@@ -419,7 +423,7 @@ public class XXX_Algo_2 {
 //            path.setModulationLevel(modulation_level);
             for (int i = 0; i < path.get_vertices().size() - 1; i++) {
                 res = global_graph.get_vertex_pair_weight_index().
-                        get(new Pair<Integer, Integer>(path.get_vertices().get(i).get_id(), path.get_vertices().get(i + 1).get_id()));
+                        get(new Pair<>(path.get_vertices().get(i).get_id(), path.get_vertices().get(i + 1).get_id()));
                 for (int j = start_slot; j < start_slot + required_slot; j++) {
                     LogRec.log.debug("j:" + j);
                     //if the slot has been occupied by other traffic
@@ -457,7 +461,7 @@ public class XXX_Algo_2 {
     public void release_occupied_slots(Multicast_Request mr) {
         for (Pair<Integer, Integer> pair : global_graph.get_pair_list()) {
             global_graph.get_vertex_pair_weight_index().get(pair).set_slots_free_for_MR(mr.id);
-            global_graph.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>
+            global_graph.get_vertex_pair_weight_index().get(new Pair<>
                     (pair.o2, pair.o1)).set_slots_free_for_MR(mr.id);
         }
         if(primary_tree_database.containsKey(mr.id)){
@@ -477,12 +481,13 @@ public class XXX_Algo_2 {
             Resource res = global_graph.get_vertex_pair_weight_index().get(pair);
             total_used_slots += res.total_used_slots();
             //now check the reversed edge
-            res = global_graph.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>((Integer) pair.o2, (Integer) pair.o1));
+            res = global_graph.get_vertex_pair_weight_index().get(new Pair<>((Integer) pair.o2, (Integer) pair.o1));
             total_used_slots += res.total_used_slots();
         }
 
         LogRec.log.info("Total used slots:" + total_used_slots + ",total slots:" + total_slots);
         rate = (double) total_used_slots / total_slots;
+//        System.out.println("Total used slots:" + total_used_slots + ",total slots:" + total_slots);
 //        System.out.println("Resource Utilization:" + rate);
         LogRec.log.info("Resource Utilization:" + rate);
         return rate;
@@ -493,13 +498,13 @@ public class XXX_Algo_2 {
         //path p denotes the primary path
         for (Pair<Integer, Integer> pair : mg.get_pair_list()) {
             Resource res = mg.get_vertex_pair_weight_index().get(pair);
-            if(protect_type.equals("Sharing")){
+            if(sharing.equals(protect_type)){
                 //firstly, we set the cost used by other primary paths to a small value
 
                 if (res.occupied_slots_for_traffic(traffic_id) > 0) {
                     res.setCost(epsilon);
                 }
-                res = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(pair.o2, pair.o1));
+                res = mg.get_vertex_pair_weight_index().get(new Pair<>(pair.o2, pair.o1));
                 if (res.occupied_slots_for_traffic(traffic_id) > 0) {
                     res.setCost(epsilon);
                 }
@@ -510,7 +515,7 @@ public class XXX_Algo_2 {
                 if (slots_no > 0) {
                     res.setCost(new_cost);
                 }
-                res = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(pair.o2, pair.o1));
+                res = mg.get_vertex_pair_weight_index().get(new Pair<>(pair.o2, pair.o1));
                 slots_no = res.reserved_slots_except_joint(joint_paths);
                 new_cost = res.getCost() - (double) slots_no / Resource.SLOTS_NO;
                 if (slots_no > 0) {
@@ -518,13 +523,13 @@ public class XXX_Algo_2 {
                 }
 
             }
-            else if(protect_type.equals("Full")){
+            else if("Full".equals(protect_type)){
                 //thirdly, we set the cost used by other backup paths of the same traffic to 0
                 res = mg.get_vertex_pair_weight_index().get(pair);
                 if (res.contains_reserved_traffic(traffic_id)) {
                     res.setCost(0);
                 }
-                res = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(pair.o2, pair.o1));
+                res = mg.get_vertex_pair_weight_index().get(new Pair<>(pair.o2, pair.o1));
                 if (res.reserved_slots_for_traffic(traffic_id) > 0) {
                     res.setCost(0);
                 }
@@ -548,9 +553,9 @@ public class XXX_Algo_2 {
                     BaseVertex v = p.get_vertices().get(i);
                     BaseVertex w = p.get_vertices().get(i + 1);
 //            BaseVertex v = p.get_vertices().get(i);
-                    Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
+                    Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<>(v.get_id(), w.get_id()));
                     resource.setCost(Double.MAX_VALUE);
-                    resource = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(w.get_id(), v.get_id()));
+                    resource = mg.get_vertex_pair_weight_index().get(new Pair<>(w.get_id(), v.get_id()));
                     resource.setCost(Double.MAX_VALUE);
                 }
 
@@ -558,7 +563,7 @@ public class XXX_Algo_2 {
                 if (p.get_vertices().size() == 2) {
                     LogRec.log.debug("Update graph!");
 //            LogRec.log.debug("src:" + p.get_src().get_id() + ",dst:" + p.get_dst().get_id());
-                    Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(p.get_src().get_id(), p.get_dst().get_id()));
+                    Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<>(p.get_src().get_id(), p.get_dst().get_id()));
                     resource.setCost(Double.MAX_VALUE);
                 }
             }
@@ -678,14 +683,13 @@ public class XXX_Algo_2 {
                 reset_modulation(smallest_tree);
 //                System.out.println("4:" + smallest_tree.getModulationLevel());
                 if(smallest_tree.getModulationLevel() != -1){
-                    continue;
                 }
                 else{
                     //if we still cannot get a tree that satisfies Smn, then we choose anyone can be used
                     boolean success = false;
                     smallest_tree.getPaths_of_tree().remove(path);
                     reset_modulation(smallest_tree);
-                    SpanningTree available_tree = dc_w_btrees.get(dc).get(0);
+//                    SpanningTree available_tree = dc_w_btrees.get(dc).get(0);
                     for (SpanningTree tree : dc_w_btrees.get(dc)) {
                         tree.add_path(path);
                         reset_modulation(tree);
@@ -710,14 +714,14 @@ public class XXX_Algo_2 {
 
     //get the number of shared links between all paths in tree and the path
     private int get_shared_links(SpanningTree tree, Path path) {
-        Set<Pair<BaseVertex, BaseVertex>> edge_set = new HashSet<Pair<BaseVertex, BaseVertex>>();
+        Set<Pair<BaseVertex, BaseVertex>> edge_set = new HashSet<>();
         for (int i = 0; i < path.get_vertices().size() - 1; i++) {
-            edge_set.add(new Pair<BaseVertex, BaseVertex>(path.get_vertices().get(i), path.get_vertices().get(i + 1)));
+            edge_set.add(new Pair<>(path.get_vertices().get(i), path.get_vertices().get(i + 1)));
         }
-        Set<Pair<BaseVertex, BaseVertex>> edge_set_of_tree = new HashSet<Pair<BaseVertex, BaseVertex>>();
+        Set<Pair<BaseVertex, BaseVertex>> edge_set_of_tree = new HashSet<>();
         for (Path p : tree.getPaths_of_tree()) {
             for (int i = 0; i < p.get_vertices().size() - 1; i++) {
-                edge_set_of_tree.add(new Pair<BaseVertex, BaseVertex>(p.get_vertices().get(i), p.get_vertices().get(i + 1)));
+                edge_set_of_tree.add(new Pair<>(p.get_vertices().get(i), p.get_vertices().get(i + 1)));
             }
         }
         edge_set.retainAll(edge_set_of_tree);
@@ -755,7 +759,7 @@ public class XXX_Algo_2 {
             for (int i = 0; i < p.get_vertices().size() - 1; i++) {
                 BaseVertex v = p.get_vertices().get(i);
                 BaseVertex w = p.get_vertices().get(i + 1);
-                Resource res = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
+                Resource res = mg.get_vertex_pair_weight_index().get(new Pair<>(v.get_id(), w.get_id()));
                 int temp_counter = res.extra_slots_for_reserve(traffic_id, start_slot, required_slots, banned_paths);
                 if (temp_counter == -1)
                     return -1;
@@ -771,7 +775,7 @@ public class XXX_Algo_2 {
             for (int i = 0; i < p.get_vertices().size() - 1; i++) {
                 BaseVertex v = p.get_vertices().get(i);
                 BaseVertex w = p.get_vertices().get(i + 1);
-                Resource res = this.global_graph.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
+                Resource res = this.global_graph.get_vertex_pair_weight_index().get(new Pair<>(v.get_id(), w.get_id()));
                 for (int j = start_index; j < start_index + required_slots; j++) {
                     if (!res.reserve_slot(j, traffic_id, tree_id, p.getId())) {
                         LogRec.log.debug("Reserve Failed! @Slot:" + j + ",Link:" + res.getStart_index() + "->" + res.getEnd_index());
@@ -820,14 +824,14 @@ public class XXX_Algo_2 {
     private boolean is_disjointed(Path path_1, Path path_2) {
         Set<Pair<BaseVertex, BaseVertex>> pair_1 = new HashSet<>();
         for (int i = 0; i < path_1.get_vertices().size() - 1; i++) {
-            pair_1.add(new Pair<BaseVertex, BaseVertex>(path_1.get_vertices().get(i), path_1.get_vertices().get(i + 1)));
+            pair_1.add(new Pair<>(path_1.get_vertices().get(i), path_1.get_vertices().get(i + 1)));
             //reversed edge
-            pair_1.add(new Pair<BaseVertex, BaseVertex>(path_1.get_vertices().get(i + 1), path_1.get_vertices().get(i)));
+            pair_1.add(new Pair<>(path_1.get_vertices().get(i + 1), path_1.get_vertices().get(i)));
         }
         Set<Pair<BaseVertex, BaseVertex>> pair_2 = new HashSet<>();
         for (int i = 0; i < path_2.get_vertices().size() - 1; i++) {
-            pair_2.add(new Pair<BaseVertex, BaseVertex>(path_2.get_vertices().get(i), path_2.get_vertices().get(i + 1)));
-            pair_2.add(new Pair<BaseVertex, BaseVertex>(path_2.get_vertices().get(i + 1), path_2.get_vertices().get(i)));
+            pair_2.add(new Pair<>(path_2.get_vertices().get(i), path_2.get_vertices().get(i + 1)));
+            pair_2.add(new Pair<>(path_2.get_vertices().get(i + 1), path_2.get_vertices().get(i)));
         }
         pair_1.retainAll(pair_1);
         return pair_1.isEmpty();
@@ -839,15 +843,16 @@ public class XXX_Algo_2 {
         Set<Integer> joint_paths = new HashSet<>();
         //to search the primary paths jointed with  p_path
         for (Map.Entry<Integer, List<SpanningTree>> entry : primary_tree_database.entrySet()) {
-            for (SpanningTree st : entry.getValue()) {
-                for (Path p : st.getPaths_of_tree()) {
-                    //if the primary paths are jointed, then add corresponding backup path to the Set
-                    if (is_disjointed(p_path, p)) {
-                        joint_paths.add(get_backup_path(entry.getKey(), p).getId());
-                    }
+            if(traffic_id != entry.getKey())
+                for (SpanningTree st : entry.getValue()) {
+                    for (Path p : st.getPaths_of_tree()) {
+                        //if the primary paths are jointed, then add corresponding backup path to the Set
+                        if (is_disjointed(p_path, p)) {
+                            joint_paths.add(get_backup_path(entry.getKey(), p).getId());
+                        }
 
+                    }
                 }
-            }
         }
         return joint_paths;
     }

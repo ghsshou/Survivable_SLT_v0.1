@@ -23,4 +23,7 @@ public class Multicast_Request {
         this.capacity = capacity;
         this.due_time = due_time;
     }
+    public void print_MR(){
+        System.out.println("ID:" + id + " Req_S:" + req_service + " Users:" + users + " Cap:" + capacity + " Due_Time:" +due_time);
+    }
 }

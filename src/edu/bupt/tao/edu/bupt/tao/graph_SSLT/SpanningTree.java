@@ -22,12 +22,12 @@ public class SpanningTree {
     int useSlots;
     int modulationLevel;
     public SpanningTree(){
-        paths_of_tree = new ArrayList<Path>();
+        paths_of_tree = new ArrayList<>();
         counter ++;
         id = counter;
     }
     Set<Pair<BaseVertex, BaseVertex>> get_all_edges(){
-        Set<Pair<BaseVertex, BaseVertex>> all_edges = new HashSet<Pair<BaseVertex, BaseVertex>>();
+        Set<Pair<BaseVertex, BaseVertex>> all_edges = new HashSet<>();
         for(Path p: paths_of_tree){
             List<BaseVertex> vertex_list = p.get_vertices();
             BaseVertex src;
@@ -39,7 +39,7 @@ public class SpanningTree {
             while(index <= vertex_list.size() - 2){
                 src = vertex_list.get(index);
                 dst = vertex_list.get(index + 1);
-                all_edges.add(new Pair<BaseVertex, BaseVertex>(src, dst));
+                all_edges.add(new Pair<>(src, dst));
                 index ++;
             }
 

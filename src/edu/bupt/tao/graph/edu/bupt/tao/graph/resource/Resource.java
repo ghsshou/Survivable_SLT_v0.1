@@ -22,7 +22,7 @@ public class Resource {
         slots = new Slot[SLOTS_NO];
         for (int i = 0; i < SLOTS_NO; i++)
             slots[i] = new Slot();
-        reserved_traffic = new HashSet<Integer>();
+        reserved_traffic = new HashSet<>();
         this.start_index = -1;
         this.end_index = -1;
         this.weight = -1;
@@ -37,7 +37,7 @@ public class Resource {
         this.slots_empty_num = source.slots_empty_num;
         for (int i = 0; i < SLOTS_NO; i++)
             slots[i] = new Slot(source.slots[i]);
-        reserved_traffic = new HashSet<Integer>();
+        reserved_traffic = new HashSet<>();
         for (int i : source.reserved_traffic) {
             this.reserved_traffic.add(i);
         }
@@ -116,8 +116,9 @@ public class Resource {
     public boolean slot_can_use(int slot_index, int traffic_id, int tree_id) {
         if (slots[slot_index].isUse_state())
             return true;
-        else if (traffic_id == slots[slot_index].get_occupy_traffic_id() && tree_id == slots[slot_index].get_occupy_tree_id())
+        else if (traffic_id == slots[slot_index].get_occupy_traffic_id() && tree_id == slots[slot_index].get_occupy_tree_id()) {
             return true;
+        }
         LogRec.log.debug("SRC:" + this.start_index + ",DST:" + this.end_index + ",SLOT INDEX:" +
                 slot_index + ",SLOT TRAFFIC ID:" + slots[slot_index].get_occupy_traffic_id() + ",TREE ID:" + slots[slot_index].get_occupy_tree_id());
         return false;
@@ -134,8 +135,8 @@ public class Resource {
             else {
                 //if this slot is occupied by the path of same traffic or reserved by other backup paths
                 if (slots[i].getOccupy_type() == 1) {
-                    if (traffic_id == slots[i].get_occupy_traffic_id())
-                        continue;
+                    if (traffic_id == slots[i].get_occupy_traffic_id()) {
+                    }
                     else return -1;
                 } else {
                     //if any banned path id is included in the info of this slot, then the slot cannot be used,
@@ -149,7 +150,6 @@ public class Resource {
                     //then, we check whether these paths contain any banned path
                     all_paths_of_slot.retainAll(banned_paths);
                     if(all_paths_of_slot.isEmpty()){
-                        continue;
                     }
                     //if any, return -1 to tell that the range from start_index to ~ cannot be used.
                     else{
@@ -178,7 +178,7 @@ public class Resource {
 //    }
 
     //only for primary path occupying
-    public boolean use_slot(int index, int traffic_id, int tree_id, int use_type) {
+    public void use_slot(int index, int traffic_id, int tree_id, int use_type) {
         //to avoid the cast where two paths of a single tree traverse a same link, if we do not judge like this, then the empty_num will minus twice
         if (slots[index].isUse_state()) {
             this.slots_empty_num--;
@@ -187,7 +187,6 @@ public class Resource {
         slots[index].setOccupy_type(use_type);
         slots[index].set_traffic_id(traffic_id);
         slots[index].set_tree_id(tree_id);
-        return true;
 
     }
 
@@ -240,7 +239,7 @@ public class Resource {
         for (Slot slot : slots) {
             if (!slot.isUse_state() && slot.getOccupy_type() == 0) {
                 //by this, we get all the path ids that reserved resource on this slot.
-                Set<Integer> temp_int = new HashSet<Integer>();
+                Set<Integer> temp_int = new HashSet<>();
                 for (Map.Entry<Integer, Set<ID>> entry : slot.traffic_reserve.entrySet()) {
                     for (ID id : entry.getValue()) {
                         temp_int.add(id.path_id);

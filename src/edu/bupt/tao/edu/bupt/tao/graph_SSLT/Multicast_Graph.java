@@ -22,9 +22,6 @@ public class Multicast_Graph extends VariableGraph {
     public Map<Integer,Multicast_Service> multicast_services = new HashMap<Integer, Multicast_Service>();
     public static int INF  = 99999;
     int multicast_service_min_copies = 3;
-    public Multicast_Graph() {
-        super();
-    }
     public Multicast_Graph(Graph graph, boolean new_resource) {
         super(graph, new_resource);
     }
@@ -98,12 +95,12 @@ public class Multicast_Graph extends VariableGraph {
 //          LogRec.log.debug(resource.getStart_index() + "->" + resource.getEnd_index());
             if(!resource.is_free_from_in(start_slot, required_slots)){
                 LogRec.log.debug("Not Free:" + resource.getStart_index() + "->" + resource.getEnd_index() );
-                multicast_graph.remove_edge(new Pair<Integer, Integer>(resource.getStart_index(), resource.getEnd_index()));
+                multicast_graph.remove_edge(new Pair<>(resource.getStart_index(), resource.getEnd_index()));
             }
-            resource = old_graph.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>( pair.o2, pair.o1));
+            resource = old_graph.get_vertex_pair_weight_index().get(new Pair<>(pair.o2, pair.o1));
             if(!resource.is_free_from_in(start_slot, required_slots)){
                 LogRec.log.debug("Not Free:" + resource.getStart_index() + "->" + resource.getEnd_index() );
-                multicast_graph.remove_edge(new Pair<Integer, Integer>(resource.getStart_index(), resource.getEnd_index()));
+                multicast_graph.remove_edge(new Pair<>(resource.getStart_index(), resource.getEnd_index()));
             }
         }
         return multicast_graph;

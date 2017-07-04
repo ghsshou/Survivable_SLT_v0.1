@@ -15,7 +15,7 @@ public class TrafficManager {
 
     public static final int _traffic_NUM = 10000;
     public static final boolean BUILD = true;
-    public static final boolean DELE = false;
+//    public static final boolean DELE = false;
 
     private int min_users = 2;
 
@@ -47,15 +47,16 @@ public class TrafficManager {
         this.multicast_graph = multicast_graph;
         this.setLambda = lambda;
         this.setDurTimeFactor = duetime;
+        Random rand = new Random(1001);
         for(int i = 0; i <_traffic_NUM; i++){
             preSleepTime[i] = (int) nextTime(setLambda);
-            preTraffics.add(new_MR());
+            preTraffics.add(new_MR(rand));
         }
 
     }
 
     //generate a MR according to the rand
-    public Multicast_Request new_MR(Random rand){
+    private Multicast_Request new_MR(Random rand){
         int req_service = rand.nextInt(multicast_graph.getMulticast_services().keySet().size());
         //decide how many users in this MR
         int max_nodes_num = multicast_graph.get_vertex_num() - multicast_graph.getDcs().keySet().size();
@@ -88,7 +89,7 @@ public class TrafficManager {
         return new_MR;
     }
 
-    public Multicast_Request new_MR(){
+    private Multicast_Request new_MR(){
         int req_service = java.util.concurrent.ThreadLocalRandom.current()
                 .nextInt(multicast_graph.getMulticast_services().keySet().size());
         //decide how many users in this MR

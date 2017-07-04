@@ -8,6 +8,7 @@ import edu.bupt.tao.graph.base_algorithms.Constrained_Steiner_Tree;
 import edu.bupt.tao.traffic_SSLT.basic_model.Multicast_Request;
 import edu.bupt.tao.traffic_SSLT.basic_model.Multicast_Service;
 
+import edu.bupt.tao.traffic_SSLT.basic_model.TrafficManager;
 import org.apache.log4j.Logger;
 
 import java.util.HashSet;
@@ -69,23 +70,87 @@ public class test_main {
 //        algo_2.get_current_resource_utilization();
 
 
-        System.out.println("Sharing");
-        long time_1 = System.currentTimeMillis();
-        MainProcedure mp = new MainProcedure(0.01,0.0001,2, 2, "Sharing");
-        mp.execute_function();
-        System.out.println("TIME CONSUMPTION:" + (System.currentTimeMillis() - time_1));
+        /* test traffic manager*/
+//        TrafficManager tm = new TrafficManager(multicast_graph);
 
-        System.out.println("Full");
-        long time_2 = System.currentTimeMillis();
-        MainProcedure mp2 = new MainProcedure(0.01,0.0001,2, 2, "Full");
-        mp2.execute_function();
-        System.out.println("TIME CONSUMPTION:" + (System.currentTimeMillis() - time_2));
 
-        System.out.println("No");
-        long time_3 = System.currentTimeMillis();
-        MainProcedure mp3 = new MainProcedure(0.01,0.0001,2, 2, "No");
-        mp3.execute_function();
-        System.out.println("TIME CONSUMPTION:" + (System.currentTimeMillis() - time_3));
+
+//        System.out.println("Sharing");
+//        long time_1 = System.currentTimeMillis();
+//        MainProcedure mp = new MainProcedure(0.01,0.0001,2, 2, "Sharing");
+//        mp.execute_function();
+//        System.out.println("TIME CONSUMPTION:" + (System.currentTimeMillis() - time_1));
+//
+//        System.out.println("Full");
+//        long time_2 = System.currentTimeMillis();
+//        MainProcedure mp2 = new MainProcedure(0.01,0.0001,2, 2, "Full");
+//        mp2.execute_function();
+//        System.out.println("TIME CONSUMPTION:" + (System.currentTimeMillis() - time_2));
+//
+//        System.out.println("No");
+//        long time_3 = System.currentTimeMillis();
+//        MainProcedure mp3 = new MainProcedure(0.01,0.0001,2, 2, "No");
+//        mp3.execute_function();
+//        System.out.println("TIME CONSUMPTION:" + (System.currentTimeMillis() - time_3));
+
+
+        //for formal data recording
+        double lambda = 0.001;
+        double duetime = 0.00001;
+        int max_primary = 2;
+        int max_backup = 2;
+        String protect_type = "Sharing";
+
+        //data structure to store data;
+        double step = 0.0005;
+        double end_lambda = 0.01;
+        double[] resource_utilization = new double[(int)((end_lambda - lambda) / step) + 1];
+        double[] blocking_probability = new double[(int)((end_lambda - lambda) / step) + 1];
+        int[] tree_num = new int[(int)((end_lambda - lambda) / step) + 1];
+        long[] time_consumption = new long[(int)((end_lambda - lambda) / step) + 1];
+        int index = 0;
+
+
+        System.out.println("Traffic Load");
+        for(double _start = lambda; _start <= end_lambda; _start += step){
+            System.out.print((int) (_start / duetime) + " ");
+        }
+        System.out.println();
+
+        while(lambda <= end_lambda){
+            long time_1 = System.currentTimeMillis();
+            MainProcedure mp = new MainProcedure(lambda,duetime,max_primary, max_backup, protect_type);
+            mp.execute_function();
+            resource_utilization[index] = mp.getFinal_resource_utilization();
+            blocking_probability[index] = mp.getFinal_blocking_probability();
+            tree_num[index] = mp.getFinal_tree_num();
+            time_consumption[index] = System.currentTimeMillis() - time_1;
+            index ++;
+            lambda += step;
+//            System.out.println("TIME CONSUMPTION:" + (System.currentTimeMillis() - time_1));
+        }
+        System.out.println("Resource Utilization");
+        for(int i = 0; i < resource_utilization.length; i++){
+            System.out.print(String.format("%.4f", resource_utilization[i]) + " ");
+        }
+        System.out.println();
+        System.out.println("Blocking Probability");
+        for(int i = 0; i < blocking_probability.length; i++){
+            System.out.print(String.format("%.4f",blocking_probability[i]) + " ");
+        }
+        System.out.println();
+        System.out.println("Tree Number");
+        for(int i = 0; i < tree_num.length; i++){
+            System.out.print(tree_num[i] + " ");
+        }
+        System.out.println();
+        System.out.println("Time Consumption");
+        for(int i = 0; i < time_consumption.length; i++){
+            System.out.print(time_consumption[i] + " ");
+        }
+
+
+
 
         System.exit(0);
     }
