@@ -128,34 +128,9 @@ public class TrafficManager {
         traffic_counter ++;
         return new_MR;
     }
-    long possion(int Lambda)  /* 产生一个泊松分布的随机数，Lamda为总体平均数*/
-    {
-//        int Lambda = 10;
-        long k = 0;
-        double p = 1.0;
-        double l=Math.exp(-Lambda);  /* 为了精度，才定义为long double的，exp(-Lambda)是接近0的小数*/
-        while (p>=l)
-        {
-            double u = Math.random();
-            p *= u;
-            k++;
-        }
-        return k-1;
-    }
-    double randomExponential(double mu)
-    {
-        double pv = 0.0;
-        pv = (double)(Math.random()%100)/100;
-        while(pv == 0)
-        {
-            pv = Math.random();
-        }
-        pv = (-1  / mu)*Math.log(1-pv);
-        return pv;
-    }
 
-    private double nextTime(double lamda){
-        return - Math.log(Math.random()) / lamda;
+    private double nextTime(double lambda){
+        return - Math.log(Math.random()) / lambda;
     }
     public int get_traffic_no(){
         return preTraffics.size();

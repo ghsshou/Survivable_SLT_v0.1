@@ -21,7 +21,7 @@ public class MainProcedure {
     public int max_b_tree_num;
     public String protection_flag;
     //how many data to record
-    private int no_record_num = 0;
+    private int no_record_num = 200;
 
 
     private Multicast_Graph multicast_graph = new Multicast_Graph("data/cost239", false);
