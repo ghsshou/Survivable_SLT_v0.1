@@ -95,7 +95,7 @@ public class test_main {
 
 
         //for formal data recording
-        double lambda = 0.02;
+        double lambda = 0.01;
         double duetime = 0.0001;
         int max_primary = 2;
         int max_backup = 2;
@@ -103,7 +103,7 @@ public class test_main {
 
         //data structure to store data;
         double step = 0.005;
-        int group_numer = 1;
+        int group_numer = 10;
         double[] resource_utilization = new double[group_numer];
         double[] blocking_probability = new double[group_numer];
         int[] tree_num = new int[group_numer];

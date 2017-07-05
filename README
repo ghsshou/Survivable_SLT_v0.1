@@ -1,0 +1,6 @@
+This file denotes the parameters can set to run simulation
+
+Traffic number: In file 'TrafficManager.java':_traffic_NUM;
+The traffic numbers that are not used to calculate resource utilization: In file 'MainProcedure.java':no_record_num;
+
+PS:the procedure for a single MR takes about 220~300ms, so the due time of a MR should be larger than that.
