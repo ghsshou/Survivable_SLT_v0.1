@@ -13,7 +13,7 @@ public class TrafficManager {
     Multicast_Graph multicast_graph;
 
 
-    public static final int _traffic_NUM = 10000;
+    public static final int _traffic_NUM = 1000;
     public static final boolean BUILD = true;
 //    public static final boolean DELE = false;
 

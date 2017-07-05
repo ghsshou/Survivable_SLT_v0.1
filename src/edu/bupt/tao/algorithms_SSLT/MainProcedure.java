@@ -104,9 +104,10 @@ public class MainProcedure {
         for(int i = 0; i < traffic_manager.get_traffic_no(); i++){
 //            System.out.println("MR[" + i + "]," + "Duetime" + traffic_manager.getPreTraffics().get(i).due_time);
             LogRec.log.debug("MR[" + i + "]");
-//            if(i % 100 == 0){
+            if(i % (TrafficManager._traffic_NUM / 10) == 0){
 //                System.out.println("Finish:" + 100.0 * i / traffic_manager.get_traffic_no() + "%");
-//            }
+                System.out.print("*");
+            }
             this.handle_traffic(traffic_manager.getPreTraffics().get(i), TrafficManager.BUILD);
             if(i >= no_record_num && i < traffic_manager.get_traffic_no() - no_record_num ){
                 resource_utilization[i - no_record_num] = xxx_algo_2.get_current_resource_utilization();

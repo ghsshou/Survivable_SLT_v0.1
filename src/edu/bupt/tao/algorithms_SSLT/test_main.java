@@ -99,7 +99,7 @@ public class test_main {
         double duetime = 0.00001;
         int max_primary = 2;
         int max_backup = 2;
-        String protect_type = "Sharing";
+        String protect_type = "No";
 
         //data structure to store data;
         double step = 0.0005;
@@ -111,13 +111,11 @@ public class test_main {
         int index = 0;
 
 
-        System.out.println("Traffic Load");
-        for(double _start = lambda; _start <= end_lambda; _start += step){
-            System.out.print((int) (_start / duetime) + " ");
-        }
-        System.out.println();
+
+        double _start = lambda;
 
         while(lambda <= end_lambda){
+            System.out.println("\nTask:" + index);
             long time_1 = System.currentTimeMillis();
             MainProcedure mp = new MainProcedure(lambda,duetime,max_primary, max_backup, protect_type);
             mp.execute_function();
@@ -129,6 +127,12 @@ public class test_main {
             lambda += step;
 //            System.out.println("TIME CONSUMPTION:" + (System.currentTimeMillis() - time_1));
         }
+        System.out.println();
+        System.out.println("Traffic Load");
+        for(; _start <= end_lambda; _start += step){
+            System.out.print((int) (_start / duetime) + " ");
+        }
+        System.out.println();
         System.out.println("Resource Utilization");
         for(int i = 0; i < resource_utilization.length; i++){
             System.out.print(String.format("%.4f", resource_utilization[i]) + " ");
