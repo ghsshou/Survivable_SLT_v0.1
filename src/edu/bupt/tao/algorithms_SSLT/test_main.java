@@ -95,42 +95,42 @@ public class test_main {
 
 
         //for formal data recording
-        double lambda = 0.001;
-        double duetime = 0.00001;
+        double lambda = 0.02;
+        double duetime = 0.0001;
         int max_primary = 2;
         int max_backup = 2;
         String protect_type = "No";
 
         //data structure to store data;
-        double step = 0.0005;
-        double end_lambda = 0.01;
-        double[] resource_utilization = new double[(int)((end_lambda - lambda) / step) + 1];
-        double[] blocking_probability = new double[(int)((end_lambda - lambda) / step) + 1];
-        int[] tree_num = new int[(int)((end_lambda - lambda) / step) + 1];
-        long[] time_consumption = new long[(int)((end_lambda - lambda) / step) + 1];
+        double step = 0.005;
+        int group_numer = 1;
+        double[] resource_utilization = new double[group_numer];
+        double[] blocking_probability = new double[group_numer];
+        int[] tree_num = new int[group_numer];
+        long[] time_consumption = new long[group_numer];
         int index = 0;
 
 
 
-        double _start = lambda;
 
-        while(lambda <= end_lambda){
+        double variable_lambda = lambda;
+        while(index < group_numer){
             System.out.println("\nTask:" + index);
             long time_1 = System.currentTimeMillis();
-            MainProcedure mp = new MainProcedure(lambda,duetime,max_primary, max_backup, protect_type);
+            MainProcedure mp = new MainProcedure(variable_lambda,duetime,max_primary, max_backup, protect_type);
             mp.execute_function();
             resource_utilization[index] = mp.getFinal_resource_utilization();
             blocking_probability[index] = mp.getFinal_blocking_probability();
             tree_num[index] = mp.getFinal_tree_num();
             time_consumption[index] = System.currentTimeMillis() - time_1;
             index ++;
-            lambda += step;
+            variable_lambda += step;
 //            System.out.println("TIME CONSUMPTION:" + (System.currentTimeMillis() - time_1));
         }
         System.out.println();
         System.out.println("Traffic Load");
-        for(; _start <= end_lambda; _start += step){
-            System.out.print((int) (_start / duetime) + " ");
+        for(index = 0; index < group_numer; index++){
+            System.out.print(Math.ceil((lambda + index * step) / duetime) + " ");
         }
         System.out.println();
         System.out.println("Resource Utilization");
