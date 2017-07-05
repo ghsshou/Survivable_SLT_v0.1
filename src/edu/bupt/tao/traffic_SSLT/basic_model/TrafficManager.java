@@ -21,13 +21,18 @@ public class TrafficManager {
 
 
     static int traffic_counter = 0;
-    public double setLambda = 0.01;//0.01
-    public double setDurTimeFactor = 0.0001;//0.0001
+    public double setLambda;//0.01
+    public double setDurTimeFactor;//0.0001
 
 //    public static final double UpperCapacity = 150.0;
 //    public static final double LowerCapacity = 50.0;
-    private static final double[] optional_Capacity = new double[]{50, 150, 200, 250};
+    private static final double[] optional_Capacity = new double[]{50, 150, 200, 250, 300, 350};
     private List<Multicast_Request> preTraffics = new Vector<>();
+
+    public int[] getPreSleepTime() {
+        return preSleepTime;
+    }
+
     private int[] preSleepTime = new int[_traffic_NUM];
     public List<Multicast_Request> onlineTraffic = new CopyOnWriteArrayList<>();
 
@@ -123,9 +128,34 @@ public class TrafficManager {
         traffic_counter ++;
         return new_MR;
     }
+    long possion(int Lambda)  /* 产生一个泊松分布的随机数，Lamda为总体平均数*/
+    {
+//        int Lambda = 10;
+        long k = 0;
+        double p = 1.0;
+        double l=Math.exp(-Lambda);  /* 为了精度，才定义为long double的，exp(-Lambda)是接近0的小数*/
+        while (p>=l)
+        {
+            double u = Math.random();
+            p *= u;
+            k++;
+        }
+        return k-1;
+    }
+    double randomExponential(double mu)
+    {
+        double pv = 0.0;
+        pv = (double)(Math.random()%100)/100;
+        while(pv == 0)
+        {
+            pv = Math.random();
+        }
+        pv = (-1  / mu)*Math.log(1-pv);
+        return pv;
+    }
 
     private double nextTime(double lamda){
-        return - Math.log1p( - Math.random()) / lamda;
+        return - Math.log(Math.random()) / lamda;
     }
     public int get_traffic_no(){
         return preTraffics.size();

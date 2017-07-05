@@ -488,7 +488,7 @@ public class XXX_Algo_2 {
         LogRec.log.info("Total used slots:" + total_used_slots + ",total slots:" + total_slots);
         rate = (double) total_used_slots / total_slots;
 //        System.out.println("Total used slots:" + total_used_slots + ",total slots:" + total_slots);
-//        System.out.println("Resource Utilization:" + rate);
+        System.out.println("Resource Utilization:" + rate);
         LogRec.log.info("Resource Utilization:" + rate);
         return rate;
     }

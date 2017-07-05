@@ -21,7 +21,7 @@ public class MainProcedure {
     public int max_b_tree_num;
     public String protection_flag;
     //how many data to record
-    private int no_record_num = 200;
+    private int no_record_num = 0;
 
 
     private Multicast_Graph multicast_graph = new Multicast_Graph("data/cost239", false);
@@ -45,7 +45,6 @@ public class MainProcedure {
         return final_tree_num;
     }
 
-    //recording result
     double final_resource_utilization;
     double final_blocking_probability;
     int final_tree_num;
@@ -111,6 +110,11 @@ public class MainProcedure {
             this.handle_traffic(traffic_manager.getPreTraffics().get(i), TrafficManager.BUILD);
             if(i >= no_record_num && i < traffic_manager.get_traffic_no() - no_record_num ){
                 resource_utilization[i - no_record_num] = xxx_algo_2.get_current_resource_utilization();
+            }
+            try {
+                Thread.sleep(traffic_manager.getPreSleepTime()[i]);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
         }
