@@ -99,7 +99,7 @@ public class test_main {
         double duetime = 0.0001;
         int max_primary = 2;
         int max_backup = 2;
-        String protect_type = "No";
+        String protect_type = "Sharing";
 
         //data structure to store data;
         double step = 0.005;

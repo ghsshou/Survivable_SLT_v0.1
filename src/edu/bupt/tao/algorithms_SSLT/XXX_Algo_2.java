@@ -31,26 +31,30 @@ public class XXX_Algo_2 {
     private Multicast_Graph global_graph;
     private ModulationSelecting modulation_selecting;
     private static final double epsilon = 0.05;//the small value used to share links between backup paths and primary paths.
-    private static final int MB = 2;//the maximum backup trees can be constructed originated from a datacenter
+    private int MB = 2;//the maximum backup trees can be constructed originated from a datacenter
     private Map<Integer, List<SpanningTree>> primary_tree_database;//store all primary trees for all traffics in the networks.
     private Map<Integer, List<SpanningTree>> backup_tree_database;//store all backup trees for all traffics in the networks.
+
+    private int MP = 2;
 
     private static String sharing = "Sharing";
     private static String full = "Full";
 
 
-    public XXX_Algo_2(Multicast_Graph g) {
+    public XXX_Algo_2(Multicast_Graph g, int MP, int MB) {
         this.global_graph = g;
         modulation_selecting = new ModulationSelecting();
         primary_tree_database = new ConcurrentHashMap<>();
         backup_tree_database = new ConcurrentHashMap<>();
         LogRec.log.debug("Edge no:" + g.get_edge_num());
+        this.MP = MP;
+        this.MB = MB;
     }
 
     //return false to block mr, remember to release the occupied resource
     public synchronized boolean procedure_for_one_MR(Multicast_Request mr, String protect_type) {
         LogRec.log.info("1.User grouping begin!");
-        Map<Datacenter, List<User_Group_Info>> ugs = new User_Grouping(global_graph, mr).grouping_algo1();
+        Map<Datacenter, List<User_Group_Info>> ugs = new User_Grouping(global_graph, mr, MP).grouping_algo1();
         //store all groups in a list
         List<User_Group_Info> all_groups = new ArrayList<>();
 
@@ -150,9 +154,9 @@ public class XXX_Algo_2 {
             Set<BaseVertex> dcs = new HashSet<>();
             //to get the set of datacenters, and not include the dst of corresponding primary path
             for (Datacenter d : dcs_w_s) {
-                if (d.vertex.get_id() != dc.get_id()) {
+//                if (d.vertex.get_id() != dc.get_id()) {
                     dcs.add(d.vertex);
-                }
+//                }
             }
 
             DijkstraShortestPathAlg dspa_bp = new DijkstraShortestPathAlg(auxiliary_g);
@@ -276,9 +280,9 @@ public class XXX_Algo_2 {
             Set<BaseVertex> dcs = new HashSet<>();
             //to get the set of datacenters, and not include the dst of corresponding primary path
             for (Datacenter d : dcs_w_s) {
-                if (d.vertex.get_id() != dc.get_id()) {
+//                if (d.vertex.get_id() != dc.get_id()) {
                     dcs.add(d.vertex);
-                }
+//                }
             }
 
             DijkstraShortestPathAlg dspa_bp = new DijkstraShortestPathAlg(auxiliary_g);
@@ -371,7 +375,7 @@ public class XXX_Algo_2 {
             }
 //            st.print_tree();
             if(!success_flag){
-                System.out.println("BP Tree Reserving Resource failed!");
+//                System.out.println("BP Tree Reserving Resource failed!");
                 return false;
             }
 
@@ -575,7 +579,10 @@ public class XXX_Algo_2 {
     }
     //return tree number including primary and backup for calculating
     public int get_tree_num(Multicast_Request mr){
-        int bp_tree_num = backup_tree_database.isEmpty()? 0 : backup_tree_database.size();
+        int bp_tree_num = backup_tree_database.isEmpty()? 0 : backup_tree_database.get(mr.id).size();
+//        System.out.println("PTree Num:" + primary_tree_database.get(mr.id).size() + "BTree num:" + bp_tree_num);
+
+
         return primary_tree_database.get(mr.id).size() + bp_tree_num;
     }
 

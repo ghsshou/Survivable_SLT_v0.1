@@ -25,11 +25,12 @@ public class User_Grouping {
     public int MP = 2;//maximum number of SLTs can be constructed
     private Map<Datacenter, List<Set<Integer>>> user_group;//list stores i-th SLT from datacenter, Set stores the users in this SLT
 
-    public User_Grouping(Multicast_Graph mr_Graph, Multicast_Request mr) {
+    public User_Grouping(Multicast_Graph mr_Graph, Multicast_Request mr, int MP) {
         this.mr_Graph = mr_Graph;
         this.mr = mr;
         dspa = new DijkstraShortestPathAlg(this.mr_Graph);
         user_group = new HashMap<>();
+        this.MP = MP;
 
     }
     //stores the info for each user and its paths to different dcs

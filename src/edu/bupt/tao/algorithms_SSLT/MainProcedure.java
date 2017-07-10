@@ -51,22 +51,22 @@ public class MainProcedure {
 
 
 
-    MainProcedure(){
-        topology_intialize();
-        xxx_algo_2 = new XXX_Algo_2(this.multicast_graph);
-        traffic_manager = new TrafficManager(this.multicast_graph);
-        resource_utilization = new double[traffic_manager.get_traffic_no() - no_record_num * 2];
-
-
-    }
+//    MainProcedure(){
+//        topology_intialize();
+//        xxx_algo_2 = new XXX_Algo_2(this.multicast_graph);
+//        traffic_manager = new TrafficManager(this.multicast_graph);
+//        resource_utilization = new double[traffic_manager.get_traffic_no() - no_record_num * 2];
+//
+//
+//    }
     MainProcedure(double lambda, double mu, int max_p_tree_num, int max_b_tree_num, String protection_flag){
         topology_intialize();
         this.lambda = lambda;
         this.mu = mu;
         this.max_b_tree_num = max_b_tree_num;
-        this.max_p_tree_num =max_p_tree_num;
+        this.max_p_tree_num = max_p_tree_num;
         this.protection_flag = protection_flag;
-        xxx_algo_2 = new XXX_Algo_2(this.multicast_graph);
+        xxx_algo_2 = new XXX_Algo_2(this.multicast_graph, max_p_tree_num, max_b_tree_num);
         traffic_manager = new TrafficManager(this.multicast_graph, lambda, mu);
         resource_utilization = new double[traffic_manager.get_traffic_no() - no_record_num * 2];
 
@@ -80,10 +80,16 @@ public class MainProcedure {
         multicast_graph.addDc(dc2);
         multicast_graph.addDc(dc3);
         Multicast_Service multicast_service_1 = new Multicast_Service(0,20);
+//        Multicast_Service multicast_service_2 = new Multicast_Service(1,20);
+//        Multicast_Service multicast_service_3 = new Multicast_Service(2,20);
         multicast_service_1.addCopyToDC(dc1);
         multicast_service_1.addCopyToDC(dc2);
         multicast_service_1.addCopyToDC(dc3);
+//        multicast_service_2.addCopyToDC(dc2);
+//        multicast_service_3.addCopyToDC(dc3);
         multicast_graph.addMulticast_services(multicast_service_1);
+//        multicast_graph.addMulticast_services(multicast_service_2);
+//        multicast_graph.addMulticast_services(multicast_service_3);
 
     }
     public void execute_function(){
@@ -127,6 +133,7 @@ public class MainProcedure {
             if(result){
                 success_num++;
                 tree_num += xxx_algo_2.get_tree_num(mr_to_handle);
+//                System.out.println(tree_num);
                 traffic_manager.onlineTraffic.add(mr_to_handle);
                 timer.schedule(get_deletrafic_task(mr_to_handle), mr_to_handle.due_time);
             }
