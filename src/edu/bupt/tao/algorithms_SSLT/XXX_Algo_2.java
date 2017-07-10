@@ -95,6 +95,7 @@ public class XXX_Algo_2 {
                             allocated_flag = true;
                             break;
                         } else {
+//                            System.out.println("Allocating resource for Ptree Failed");
                             return false;
                         }
 
@@ -105,6 +106,7 @@ public class XXX_Algo_2 {
         //Check if all user groups have been allocated resource successfully
         if (all_trees.size() != all_groups.size()) {
             LogRec.log.info("Not all trees are allocated! Success no:" + all_trees.size() + ", total no:" + all_groups.size());
+//            System.out.println("Allocating resource for All Ptree Failed");
 //            release_occupied_slots(mr);
             return false;
         }
@@ -308,6 +310,7 @@ public class XXX_Algo_2 {
                 }
             } else {
 //                System.out.println("CANNOT FIND BACKUP PATHS FOR: " + dc.get_id() + " TO " + user.get_id());
+//                System.out.println("Cannot find bpaths!");
                 return false;
             }
         }
@@ -480,13 +483,28 @@ public class XXX_Algo_2 {
     public double get_current_resource_utilization() {
         double rate;
         int total_used_slots = 0;
-        int total_slots = Resource.SLOTS_NO * global_graph.get_edge_num();
+
+
+        //to eliminate the links terminated at dcs
+        int exclusive_edges_num = 0;
+//        Set<Integer> dcs = new HashSet<>();
+        for(Map.Entry<BaseVertex, Datacenter> entry: global_graph.getDcs().entrySet()){
+//            dcs.add(entry.getValue().vertex.get_id());
+            exclusive_edges_num += global_graph.get_precedent_vertices(entry.getValue().vertex).size();
+//            exclusive_edges_num += global_graph.get_adjacent_vertices(entry.getValue().vertex).size();
+            
+        }
+        int total_slots = Resource.SLOTS_NO * (global_graph.get_edge_num() - exclusive_edges_num);
+
         for (Pair pair : global_graph.get_pair_list()) {
             Resource res = global_graph.get_vertex_pair_weight_index().get(pair);
-            total_used_slots += res.total_used_slots();
+//            if(!dcs.contains(res.getEnd_index()))
+                total_used_slots += res.total_used_slots();
             //now check the reversed edge
-            res = global_graph.get_vertex_pair_weight_index().get(new Pair<>((Integer) pair.o2, (Integer) pair.o1));
-            total_used_slots += res.total_used_slots();
+            res = global_graph.get_vertex_pair_weight_index().
+                    get(new Pair<>((Integer) pair.o2, (Integer) pair.o1));
+//            if(!dcs.contains(res.getEnd_index()))
+                total_used_slots += res.total_used_slots();
         }
 
         LogRec.log.info("Total used slots:" + total_used_slots + ",total slots:" + total_slots);

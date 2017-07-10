@@ -99,7 +99,7 @@ public class test_main {
         double duetime = 0.0001;
         int max_primary = 2;
         int max_backup = 2;
-        String protect_type = "Sharing";
+        String protect_type = "Full";
 
         //data structure to store data;
         double step = 0.005;
@@ -121,11 +121,15 @@ public class test_main {
             mp.execute_function();
             resource_utilization[index] = mp.getFinal_resource_utilization();
             blocking_probability[index] = mp.getFinal_blocking_probability();
+
             tree_num[index] = mp.getFinal_tree_num();
             time_consumption[index] = System.currentTimeMillis() - time_1;
+            System.out.print("\nTraffic Load:" + (int) (variable_lambda / duetime));
+            System.out.print(",Resource Utilization:" + String.format("%.4f", resource_utilization[index]));
+            System.out.println(",Blocking Probability:" + String.format("%.4f",blocking_probability[index]));
             index ++;
             variable_lambda += step;
-//            System.out.println("TIME CONSUMPTION:" + (System.currentTimeMillis() - time_1));
+
         }
         System.out.println();
         System.out.println("Traffic Load");

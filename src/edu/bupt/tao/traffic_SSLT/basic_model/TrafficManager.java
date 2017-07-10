@@ -17,7 +17,8 @@ public class TrafficManager {
     public static final boolean BUILD = true;
 //    public static final boolean DELE = false;
 
-    private int min_users = 2;
+    private int min_users = 1;
+    private int minmus_users = 4;//denote the number of users that
 
 
     static int traffic_counter = 0;
@@ -26,7 +27,7 @@ public class TrafficManager {
 
 //    public static final double UpperCapacity = 150.0;
 //    public static final double LowerCapacity = 50.0;
-    private static final double[] optional_Capacity = new double[]{50, 150, 200, 250, 300, 350};
+    private static final double[] optional_Capacity = new double[]{50, 100, 150, 200, 250};
     private List<Multicast_Request> preTraffics = new Vector<>();
 
     public int[] getPreSleepTime() {
@@ -42,7 +43,7 @@ public class TrafficManager {
         for(int i = 0; i <_traffic_NUM; i++){
             LogRec.log.debug("Generate MR:" + i);
             preSleepTime[i] = (int) nextTime(setLambda);
-            preTraffics.add(new_MR(rand));
+            preTraffics.add(new_MR(rand, minmus_users));
         }
 
     }
@@ -55,16 +56,16 @@ public class TrafficManager {
         Random rand = new Random(1001);
         for(int i = 0; i <_traffic_NUM; i++){
             preSleepTime[i] = (int) nextTime(setLambda);
-            preTraffics.add(new_MR(rand));
+            preTraffics.add(new_MR(rand, minmus_users));
         }
 
     }
 
     //generate a MR according to the rand
-    private Multicast_Request new_MR(Random rand){
+    private Multicast_Request new_MR(Random rand, int minimus_users){
         int req_service = rand.nextInt(multicast_graph.getMulticast_services().keySet().size());
         //decide how many users in this MR
-        int max_nodes_num = multicast_graph.get_vertex_num() - multicast_graph.getDcs().keySet().size();
+        int max_nodes_num = multicast_graph.get_vertex_num() - multicast_graph.getDcs().keySet().size() - minimus_users;
         int user_size = rand.nextInt(max_nodes_num - min_users)
                 + min_users;
         //get the nodes set that can be chosen as users

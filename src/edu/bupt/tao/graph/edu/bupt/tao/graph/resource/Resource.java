@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class Resource {
 
-    public static final int SLOTS_NO = 300;
+    public static final int SLOTS_NO = 400;
     public double weight;
     public double cost;//by Tao, 6/20/2017
     public Slot[] slots = new Slot[SLOTS_NO];
