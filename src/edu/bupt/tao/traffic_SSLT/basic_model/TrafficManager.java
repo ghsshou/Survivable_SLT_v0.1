@@ -18,7 +18,8 @@ public class TrafficManager {
 //    public static final boolean DELE = false;
 
     private int min_users = 1;
-    private int minmus_users = 4;//denote the number of users that
+    private int minus_users = 4;//denote the number of users that
+    private float control_probability = 0.8f;
 
 
     static int traffic_counter = 0;
@@ -43,7 +44,7 @@ public class TrafficManager {
         for(int i = 0; i <_traffic_NUM; i++){
             LogRec.log.debug("Generate MR:" + i);
             preSleepTime[i] = (int) nextTime(setLambda);
-            preTraffics.add(new_MR(rand, minmus_users));
+            preTraffics.add(new_MR(rand, minus_users));
         }
 
     }
@@ -56,7 +57,7 @@ public class TrafficManager {
         Random rand = new Random(1001);
         for(int i = 0; i <_traffic_NUM; i++){
             preSleepTime[i] = (int) nextTime(setLambda);
-            preTraffics.add(new_MR(rand, minmus_users));
+            preTraffics.add(new_MR(rand, minus_users));
         }
 
     }
@@ -65,9 +66,18 @@ public class TrafficManager {
     private Multicast_Request new_MR(Random rand, int minimus_users){
         int req_service = rand.nextInt(multicast_graph.getMulticast_services().keySet().size());
         //decide how many users in this MR
-        int max_nodes_num = multicast_graph.get_vertex_num() - multicast_graph.getDcs().keySet().size() - minimus_users;
-        int user_size = rand.nextInt(max_nodes_num - min_users)
-                + min_users;
+        int max_nodes_num_larger = multicast_graph.get_vertex_num()
+                - multicast_graph.getDcs().keySet().size();
+        int max_nodes_num_smaller = max_nodes_num_larger - minimus_users;
+        int user_size = 0;
+        if(Math.random() > control_probability){
+            user_size = rand.nextInt(max_nodes_num_larger - min_users)
+                    + min_users;
+        }
+        else{
+            user_size = rand.nextInt(max_nodes_num_smaller - min_users)
+                    + min_users;
+        }
         //get the nodes set that can be chosen as users
         List<Integer> optional_nodes = new ArrayList<>();
         for(int i = 0; i < multicast_graph.get_vertex_num(); i ++){
@@ -95,40 +105,40 @@ public class TrafficManager {
         return new_MR;
     }
 
-    private Multicast_Request new_MR(){
-        int req_service = java.util.concurrent.ThreadLocalRandom.current()
-                .nextInt(multicast_graph.getMulticast_services().keySet().size());
-        //decide how many users in this MR
-        int max_nodes_num = multicast_graph.get_vertex_num() - multicast_graph.getDcs().keySet().size();
-        int user_size = java.util.concurrent.ThreadLocalRandom.current()
-                .nextInt(max_nodes_num - min_users)
-                + min_users;
-
-        //get the nodes set that can be chosen as users
-        List<Integer> optional_nodes = new ArrayList<>();
-        for(int i = 0; i < multicast_graph.get_vertex_num(); i ++){
-            if(multicast_graph.isDC(i)){
-                continue;
-            }
-            optional_nodes.add(i);
-        }
-
-        int[] users = new int[user_size];
-        LogRec.log.debug("USER SIZE:" + user_size);
-        for(int i = 0; i < user_size; i ++){
-            int user = java.util.concurrent.ThreadLocalRandom.current()
-                    .nextInt(optional_nodes.size());
-            users[i] = optional_nodes.get(user);
-            optional_nodes.remove(user);
-        }
-        int select_capacity = java.util.concurrent.ThreadLocalRandom.current()
-                .nextInt(optional_Capacity.length);
-        long duetime = (int) nextTime(setDurTimeFactor);
-        Multicast_Request new_MR = new Multicast_Request(traffic_counter, req_service,
-                users, optional_Capacity[select_capacity], duetime);
-        traffic_counter ++;
-        return new_MR;
-    }
+//    private Multicast_Request new_MR(){
+//        int req_service = java.util.concurrent.ThreadLocalRandom.current()
+//                .nextInt(multicast_graph.getMulticast_services().keySet().size());
+//        //decide how many users in this MR
+//        int max_nodes_num = multicast_graph.get_vertex_num() - multicast_graph.getDcs().keySet().size();
+//        int user_size = java.util.concurrent.ThreadLocalRandom.current()
+//                .nextInt(max_nodes_num - min_users)
+//                + min_users;
+//
+//        //get the nodes set that can be chosen as users
+//        List<Integer> optional_nodes = new ArrayList<>();
+//        for(int i = 0; i < multicast_graph.get_vertex_num(); i ++){
+//            if(multicast_graph.isDC(i)){
+//                continue;
+//            }
+//            optional_nodes.add(i);
+//        }
+//
+//        int[] users = new int[user_size];
+//        LogRec.log.debug("USER SIZE:" + user_size);
+//        for(int i = 0; i < user_size; i ++){
+//            int user = java.util.concurrent.ThreadLocalRandom.current()
+//                    .nextInt(optional_nodes.size());
+//            users[i] = optional_nodes.get(user);
+//            optional_nodes.remove(user);
+//        }
+//        int select_capacity = java.util.concurrent.ThreadLocalRandom.current()
+//                .nextInt(optional_Capacity.length);
+//        long duetime = (int) nextTime(setDurTimeFactor);
+//        Multicast_Request new_MR = new Multicast_Request(traffic_counter, req_service,
+//                users, optional_Capacity[select_capacity], duetime);
+//        traffic_counter ++;
+//        return new_MR;
+//    }
 
     private double nextTime(double lambda){
         return - Math.log(Math.random()) / lambda;
