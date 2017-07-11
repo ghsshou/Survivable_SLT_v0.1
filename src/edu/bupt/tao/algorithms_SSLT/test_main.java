@@ -270,8 +270,9 @@ public class test_main {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                    case_counter ++;
                 }
-                case_counter ++;
+
             }
         }
         System.out.println("\nFinished");
