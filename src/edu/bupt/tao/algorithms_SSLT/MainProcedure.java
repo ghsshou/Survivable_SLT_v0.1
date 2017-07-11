@@ -21,7 +21,7 @@ public class MainProcedure {
     public int max_b_tree_num;
     public String protection_flag;
     //how many data to record
-    private int no_record_num = 300;
+    private int no_record_num = 50;
 
 
     private Multicast_Graph multicast_graph = new Multicast_Graph("data/cost239", false);
@@ -52,15 +52,15 @@ public class MainProcedure {
 
 
 //    MainProcedure(){
-//        topology_intialize();
+//        topology_initialize();
 //        xxx_algo_2 = new XXX_Algo_2(this.multicast_graph);
 //        traffic_manager = new TrafficManager(this.multicast_graph);
 //        resource_utilization = new double[traffic_manager.get_traffic_no() - no_record_num * 2];
 //
 //
 //    }
-    MainProcedure(double lambda, double mu, int max_p_tree_num, int max_b_tree_num, String protection_flag){
-        topology_intialize();
+    MainProcedure(double lambda, double mu, int max_p_tree_num, int max_b_tree_num, String protection_flag, boolean distributed_or_not){
+        topology_initialize(distributed_or_not);
         this.lambda = lambda;
         this.mu = mu;
         this.max_b_tree_num = max_b_tree_num;
@@ -72,7 +72,7 @@ public class MainProcedure {
 
 
     }
-    private void topology_intialize(){
+    private void topology_initialize(boolean distributed_or_not){
         Datacenter dc1 = new Datacenter(multicast_graph.get_vertex(0),100);
         Datacenter dc2 = new Datacenter(multicast_graph.get_vertex(3),200);
         Datacenter dc3 = new Datacenter(multicast_graph.get_vertex(8),200);
@@ -80,18 +80,24 @@ public class MainProcedure {
         multicast_graph.addDc(dc2);
         multicast_graph.addDc(dc3);
         Multicast_Service multicast_service_1 = new Multicast_Service(0,20);
-//        Multicast_Service multicast_service_2 = new Multicast_Service(1,20);
-//        Multicast_Service multicast_service_3 = new Multicast_Service(2,20);
         multicast_service_1.addCopyToDC(dc1);
-        multicast_service_1.addCopyToDC(dc2);
-        multicast_service_1.addCopyToDC(dc3);
-//        multicast_service_2.addCopyToDC(dc2);
-//        multicast_service_3.addCopyToDC(dc3);
         multicast_graph.addMulticast_services(multicast_service_1);
-//        multicast_graph.addMulticast_services(multicast_service_2);
-//        multicast_graph.addMulticast_services(multicast_service_3);
+        if(distributed_or_not){
+            multicast_service_1.addCopyToDC(dc2);
+            multicast_service_1.addCopyToDC(dc3);
+        }
+        else{
+            Multicast_Service multicast_service_2 = new Multicast_Service(1,20);
+            Multicast_Service multicast_service_3 = new Multicast_Service(2,20);
+            multicast_service_2.addCopyToDC(dc2);
+            multicast_service_3.addCopyToDC(dc3);
+            multicast_graph.addMulticast_services(multicast_service_2);
+            multicast_graph.addMulticast_services(multicast_service_3);
+        }
+
 
     }
+
     public void execute_function(){
 //        System.out.println("Traffic Load:" + (int)(lambda / mu));
         traffic_send(this.traffic_manager);

@@ -13,11 +13,17 @@ public class TrafficManager {
     Multicast_Graph multicast_graph;
 
 
-    public static final int _traffic_NUM = 3000;
+    public static final int _traffic_NUM = 200;
     public static final boolean BUILD = true;
 //    public static final boolean DELE = false;
 
     private int min_users = 1;
+    /*
+    minus_users denotes the number that will be subtracted from the number of total number of nodes.
+    control_probability denotes that when a number generated randomly is larger than control_probability, then a new traffic that
+    can select any number from the range from 'min_users' to the number of total number of nodes will be created. Otherwise, the
+    new created traffic will randomly select the user size according to 'minus_users'.
+     */
     private int minus_users = 4;//denote the number of users that
     private float control_probability = 0.8f;
 
@@ -28,7 +34,7 @@ public class TrafficManager {
 
 //    public static final double UpperCapacity = 150.0;
 //    public static final double LowerCapacity = 50.0;
-    private static final double[] optional_Capacity = new double[]{50, 100, 150, 200, 250};
+    private static final double[] optional_Capacity = new double[]{25, 50, 75, 100, 125, 150, 175, 200, 225, 250};
     private List<Multicast_Request> preTraffics = new Vector<>();
 
     public int[] getPreSleepTime() {
