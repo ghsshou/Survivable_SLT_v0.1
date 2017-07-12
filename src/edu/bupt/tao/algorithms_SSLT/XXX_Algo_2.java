@@ -233,6 +233,8 @@ public class XXX_Algo_2 {
         Multicast_Graph auxiliary_g_bp = new Multicast_Graph(global_graph, true);
         for (SpanningTree st : all_backup_trees) {
 //            System.out.println(st.getModulationLevel());
+            if(st.getModulationLevel() <= 0)
+                return false;
             int required_slots = (int) Math.ceil(mr.capacity / modulation_selecting.get_capacity(st.getModulationLevel()));
             int optimal_index = -1;
             double extra_slots = Double.MAX_VALUE;
