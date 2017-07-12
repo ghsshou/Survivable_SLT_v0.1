@@ -24,8 +24,8 @@ public class TrafficManager {
     can select any number from the range from 'min_users' to the number of total number of nodes will be created. Otherwise, the
     new created traffic will randomly select the user size according to 'minus_users'.
      */
-    private int minus_users = 4;//denote the number of users that
-    private float control_probability = 0.8f;
+    private int minus_users = 0;//denote the number of users that
+    private float control_probability = 0.7f;
 
 
     static int traffic_counter = 0;
@@ -34,7 +34,7 @@ public class TrafficManager {
 
 //    public static final double UpperCapacity = 150.0;
 //    public static final double LowerCapacity = 50.0;
-    private static final double[] optional_Capacity = new double[]{25, 50, 75, 100, 125, 150, 175, 200, 225, 250};
+    private static final double[] optional_Capacity = new double[]{50, 100, 150, 200, 250, 300, 350, 400};
     private List<Multicast_Request> preTraffics = new Vector<>();
 
     public int[] getPreSleepTime() {

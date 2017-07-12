@@ -662,6 +662,8 @@ public class XXX_Algo_2 {
                     //set the modulation level
                     tree.setModulationLevel(modulation_selecting.modulation_select(path.get_weight()));
 //                    System.out.println("2:" + tree.getModulationLevel());
+                    if(tree.getModulationLevel() <= 0)
+                        return false;
                     dc_w_btrees.get(dc).add(tree);
                     path_flag = true;
                     break;
