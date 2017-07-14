@@ -223,6 +223,7 @@ public class DijkstraShortestPathAlg
 		double total_weight_or_cost = 0;
 		if(vertex_list.isEmpty()){
 			System.out.println("FATAL ERROR! CANNOT FIND PATH:" + source_vertex.get_id() + "->" + sink_vertex.get_id());
+			return null;
 		}
 		do{
 			src = vertex_list.get(index);

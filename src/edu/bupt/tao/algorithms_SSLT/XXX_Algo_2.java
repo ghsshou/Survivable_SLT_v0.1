@@ -493,7 +493,7 @@ public class XXX_Algo_2 {
         for(Map.Entry<BaseVertex, Datacenter> entry: global_graph.getDcs().entrySet()){
 //            dcs.add(entry.getValue().vertex.get_id());
             exclusive_edges_num += global_graph.get_precedent_vertices(entry.getValue().vertex).size();
-//            exclusive_edges_num += global_graph.get_adjacent_vertices(entry.getValue().vertex).size();
+            exclusive_edges_num += global_graph.get_adjacent_vertices(entry.getValue().vertex).size();
             
         }
         int total_slots = Resource.SLOTS_NO * (global_graph.get_edge_num() - exclusive_edges_num);
@@ -515,6 +515,18 @@ public class XXX_Algo_2 {
 //        System.out.println("Resource Utilization:" + rate);
         LogRec.log.info("Resource Utilization:" + rate);
         return rate;
+    }
+    public int get_max_used_slot_index(){
+        int index = -1;
+        for (Pair pair : global_graph.get_pair_list()) {
+            Resource res = global_graph.get_vertex_pair_weight_index().get(pair);
+            index = index <= res.get_largest_used_index() ? res.get_largest_used_index() : index;
+            res = global_graph.get_vertex_pair_weight_index().
+                    get(new Pair<>((Integer) pair.o2, (Integer) pair.o1));
+            index = index <= res.get_largest_used_index() ? res.get_largest_used_index() : index;
+        }
+        return index;
+
     }
 
     //update cost according the Equations,

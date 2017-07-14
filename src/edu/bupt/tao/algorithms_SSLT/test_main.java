@@ -174,7 +174,7 @@ public class test_main {
         double step = 0.005;
         int group_numer = 10;
         int case_counter = 1;
-        String[] pro_type = new String[] {"Sharing", "Full", "None"};
+        String[] pro_type = new String[] {"Full", "None"};
         boolean[] distributed_flag = new boolean[] {true, false};
         for(boolean distributed_or_not: distributed_flag){
             for(String protection: pro_type){

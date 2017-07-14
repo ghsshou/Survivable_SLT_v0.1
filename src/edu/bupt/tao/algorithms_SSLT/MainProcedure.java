@@ -24,7 +24,7 @@ public class MainProcedure {
     private int no_record_num = 300;
 
 
-    private Multicast_Graph multicast_graph = new Multicast_Graph("data/cost239", false);
+    private Multicast_Graph multicast_graph;
     private XXX_Algo_2 xxx_algo_2;
     private TrafficManager traffic_manager;
     private Timer timer = new Timer();
@@ -59,7 +59,31 @@ public class MainProcedure {
 //
 //
 //    }
+    //for static traffic scenario.
+    MainProcedure(int max_p_tree_num, int max_b_tree_num, String protection_flag, boolean distributed_or_not){
+        this.multicast_graph = new Multicast_Graph("data/n6e9", false);
+        Datacenter dc1 = new Datacenter(multicast_graph.get_vertex(0),100);
+        Datacenter dc2 = new Datacenter(multicast_graph.get_vertex(3),200);
+        multicast_graph.addDc(dc1);
+        multicast_graph.addDc(dc2);
+        Multicast_Service multicast_service_1 = new Multicast_Service(0,20);
+        multicast_service_1.addCopyToDC(dc1);
+        multicast_graph.addMulticast_services(multicast_service_1);
+        if(distributed_or_not){
+            multicast_service_1.addCopyToDC(dc2);
+        }
+        else{
+            Multicast_Service multicast_service_2 = new Multicast_Service(1,20);
+            multicast_service_2.addCopyToDC(dc2);
+            multicast_graph.addMulticast_services(multicast_service_2);
+        }
+        this.max_b_tree_num = max_b_tree_num;
+        this.max_p_tree_num = max_p_tree_num;
+        this.protection_flag = protection_flag;
+        xxx_algo_2 = new XXX_Algo_2(this.multicast_graph, max_p_tree_num, max_b_tree_num);
+    }
     MainProcedure(double lambda, double mu, int max_p_tree_num, int max_b_tree_num, String protection_flag, boolean distributed_or_not){
+        this.multicast_graph = new Multicast_Graph("data/cost239", false);
         topology_initialize(distributed_or_not);
         this.lambda = lambda;
         this.mu = mu;
@@ -183,4 +207,7 @@ public class MainProcedure {
         return total / data.length;
     }
 
+    public XXX_Algo_2 getXxx_algo_2() {
+        return xxx_algo_2;
+    }
 }

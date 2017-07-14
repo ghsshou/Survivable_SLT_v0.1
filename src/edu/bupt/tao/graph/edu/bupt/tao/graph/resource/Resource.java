@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class Resource {
 
-    public static final int SLOTS_NO = 300;
+    public static final int SLOTS_NO = 800;
     public double weight;
     public double cost;//by Tao, 6/20/2017
     public Slot[] slots = new Slot[SLOTS_NO];
@@ -252,6 +252,17 @@ public class Resource {
             }
         }
         return total;
+    }
+
+    public int get_largest_used_index(){
+        int index = 0;
+        for(int i = 0; i < slots.length; i++){
+            if(!slots[i].isUse_state()){
+//                System.out.println(this.getStart_index() + "->" + this.getEnd_index() + " index:" + i);
+                index = index <= i ? i : index;
+            }
+        }
+        return index;
     }
 
 
