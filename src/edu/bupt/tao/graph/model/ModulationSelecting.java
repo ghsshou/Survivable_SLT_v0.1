@@ -11,8 +11,8 @@ public class ModulationSelecting {
     public ModulationSelecting(){
         ModulationFormats.put(1,new ModulationFormat("BPSK", 1, 6000));
         ModulationFormats.put(2,new ModulationFormat("QPSK", 2, 3000));
-//        ModulationFormats.put(3,new ModulationFormat("8QAM", 3, 1500));
-//        ModulationFormats.put(4,new ModulationFormat("16QAM", 4,750));
+        ModulationFormats.put(3,new ModulationFormat("8QAM", 3, 1500));
+        ModulationFormats.put(4,new ModulationFormat("16QAM", 4,750));
     }
     public int get_highest_ML(){
         int level = 0;
