@@ -222,7 +222,7 @@ public class DijkstraShortestPathAlg
 		int index = 0;
 		double total_weight_or_cost = 0;
 		if(vertex_list.isEmpty()){
-			System.out.println("FATAL ERROR! CANNOT FIND PATH:" + source_vertex.get_id() + "->" + sink_vertex.get_id());
+//			System.out.println("FATAL ERROR! CANNOT FIND PATH:" + source_vertex.get_id() + "->" + sink_vertex.get_id());
 			return null;
 		}
 		do{
@@ -375,10 +375,12 @@ public class DijkstraShortestPathAlg
 		for(BaseVertex src: srcs){
 
 			path = get_shortest_path(src, sink_vertex, use_cost);
-			temp_value = use_cost ? path.getCost() : path.get_weight();
-			if(min_value > temp_value){
-				shortest_path = path;
-				min_value = temp_value;
+			if(path!=null){
+				temp_value = use_cost ? path.getCost() : path.get_weight();
+				if(min_value > temp_value){
+					shortest_path = path;
+					min_value = temp_value;
+				}
 			}
 		}
 		return shortest_path;

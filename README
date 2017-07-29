@@ -9,3 +9,5 @@ The traffic numbers that are not used to calculate resource utilization: In file
 PS:
 1.the procedure for a single MR takes about 220~300ms, so the due time of a MR should be larger than that.
 2.in the function "get_current_resource_utilization", if you want to cheat, you can annotate certain code.
+3.in topology 'US_backbone_28', datacenters are 6,17,22
+4.in topology 'cost239', datacenters are 0,3,8
