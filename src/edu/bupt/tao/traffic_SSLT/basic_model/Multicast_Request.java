@@ -26,4 +26,12 @@ public class Multicast_Request {
     public void print_MR(){
         System.out.println("ID:" + id + " Req_S:" + req_service + " Users:" + users + " Cap:" + capacity + " Due_Time:" +due_time);
     }
+
+    public boolean is_one_user(int node_id){
+        for(int i = 0; i < users.length; i++){
+            if(node_id == users[i])
+                return true;
+        }
+        return false;
+    }
 }

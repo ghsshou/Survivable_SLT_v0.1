@@ -9,15 +9,16 @@ import java.util.Set;
  * Created by Gao Tao on 2017/6/11.
  */
 public class User_Group_Info {
-    Datacenter dc;
+    public Datacenter dc;
     int index;
-    Set<Integer> users;
+    public Set<Integer> users;
     int modulation_level;
     double longest_dis;
     User_Group_Info(){
         this.users = new HashSet<Integer>();
         this.modulation_level = 0;
         this.longest_dis = -1;
+        this.longest_dis = Double.MAX_VALUE;
     }
     User_Group_Info(Datacenter dc, int index){
             this.users = new HashSet<Integer>();
@@ -31,6 +32,11 @@ public class User_Group_Info {
 
     public void setModulation_level(int modulation_level) {
         this.modulation_level = modulation_level;
+    }
+
+
+    public Set<Integer> getUsers() {
+        return users;
     }
 
     @Override

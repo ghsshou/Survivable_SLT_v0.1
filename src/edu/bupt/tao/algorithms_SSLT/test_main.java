@@ -165,10 +165,30 @@ public class test_main {
 
         File results = new File("Results.txt");
         int file_counter = 1;
-        if(results.exists()){
+        while(results.exists()){
 //            results.delete();
             results = new File("Results_" + file_counter + ".txt");
+            file_counter++;
         }
+        System.out.print("Results File Name: Results");
+        if(file_counter >= 1){
+            System.out.print("_" + --file_counter);
+        }
+        System.out.println(".txt");
+
+
+        try {
+            FileWriter fw_1 = new FileWriter(results,true);
+            BufferedWriter bw_1 = new BufferedWriter(fw_1);
+            bw_1.write("~[SIMULATION INFO:" + "1. Topology:" + MainProcedure.topo_file_name +"]~");
+            System.out.println("~[SIMULATION INFO:" + "1. Topology:" + MainProcedure.topo_file_name +"]~");
+            bw_1.close();
+            fw_1.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
         //for formal data recording
         double lambda = 0.01;
         double duetime = 0.0001;
@@ -176,7 +196,7 @@ public class test_main {
         int group_numer = 10;
         int case_counter = 1;
         String[] pro_type = new String[] {"Sharing","Full", "None"};
-        boolean[] distributed_flag = new boolean[] {true, false};
+        boolean[] distributed_flag = new boolean[] {false, true};
         for(boolean distributed_or_not: distributed_flag){
             for(String protection: pro_type){
                 int max_primary = 1;

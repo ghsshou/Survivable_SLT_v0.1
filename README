@@ -11,3 +11,10 @@ PS:
 2.in the function "get_current_resource_utilization", if you want to cheat, you can annotate certain code.
 3.in topology 'US_backbone_28', datacenters are 6,17,22
 4.in topology 'cost239', datacenters are 0,3,8
+---------------------------------------------------------------------------------
+Date:2017/9/20
+Development Log: For segment protection.
+Note:
+1.The steps are: first, grouping; second, primary tree calculating and segments dividing; third, backup segment calculating;
+fourth, allocate resource.
+2.Don't consider adaptive spectrum allocation.

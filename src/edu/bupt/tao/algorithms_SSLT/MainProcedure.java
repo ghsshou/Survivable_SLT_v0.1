@@ -20,6 +20,7 @@ public class MainProcedure {
     public int max_p_tree_num;
     public int max_b_tree_num;
     public String protection_flag;
+    static public String topo_file_name = "data/US_backbone_28";
     //how many data to record
     private int no_record_num = 300;
 
@@ -83,7 +84,7 @@ public class MainProcedure {
         xxx_algo_2 = new XXX_Algo_2(this.multicast_graph, max_p_tree_num, max_b_tree_num);
     }
     MainProcedure(double lambda, double mu, int max_p_tree_num, int max_b_tree_num, String protection_flag, boolean distributed_or_not){
-        this.multicast_graph = new Multicast_Graph("data/cost239", false);
+        this.multicast_graph = new Multicast_Graph(topo_file_name, false);
         topology_initialize(distributed_or_not);
         this.lambda = lambda;
         this.mu = mu;

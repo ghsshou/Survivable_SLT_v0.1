@@ -24,7 +24,7 @@ public class TrafficManager {
     can select any number from the range from 'min_users' to the number of total number of nodes will be created. Otherwise, the
     new created traffic will randomly select the user size according to 'minus_users'.
      */
-    private int minus_users = 0;//denote the number of users that
+    private int minus_users = 6;//denote the number of users that
     private float control_probability = 0.8f;
 
 

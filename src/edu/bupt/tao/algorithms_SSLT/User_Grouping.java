@@ -57,7 +57,7 @@ public class User_Grouping {
     }
 
 
-
+//get all paths from the dcs to all users
     private List<User_Path> paths_caculate(){
 
         List<User_Path> paths_of_users = new ArrayList<User_Path>();
@@ -185,6 +185,39 @@ public class User_Grouping {
 
         return user_group_UG;
 
+    }
+//group users according to the distance to the datacenters hosting the required MR
+    public Map<Datacenter, List<User_Group_Info>> grouping_dis_only(){
+
+        Map<Datacenter,List<User_Group_Info>> user_group_UG = new HashMap<Datacenter,List<User_Group_Info>>();
+        List<User_Path> paths_of_users = paths_caculate();
+        //initialize
+        Set<Datacenter> dcs_w_ms = mr_Graph.get_multicast_service(mr.req_service).getInDCs();
+        Iterator<Datacenter> it_temp = dcs_w_ms.iterator();
+        while (it_temp.hasNext()){
+            user_group_UG.put(it_temp.next(), new ArrayList<User_Group_Info>());
+        }
+        //
+        for(User_Path user_path : paths_of_users){
+            Datacenter dc = mr_Graph.getDcs().get(user_path.paths.get(0).get_src());
+            User_Group_Info ugi;
+            //index = 1, because in this algorithm, we consider all users from the same datacenter belong to a group
+            if(user_group_UG.get(dc).isEmpty()){
+                ugi = new User_Group_Info(dc,1);
+                ugi.users.add(user_path.user);
+                user_group_UG.get(dc).add(ugi);
+            }
+            else{
+                ugi = user_group_UG.get(dc).get(0);
+                ugi.users.add(user_path.user);
+            }
+//            System.out.println("ADD USER:" + user_path.user + " TO:" + dc.vertex.get_id());
+            double dis = ugi.longest_dis;
+            if(dis < user_path.paths.get(0).get_weight())
+                ugi.setLongest_dis(dis);
+        }
+
+        return user_group_UG;
     }
 
     //return true if the sum of cost due to ML degradation when path_1 is added to the i-th group of the datacenter (path_1.src)
