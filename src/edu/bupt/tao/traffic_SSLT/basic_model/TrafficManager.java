@@ -13,7 +13,7 @@ public class TrafficManager {
     Multicast_Graph multicast_graph;
 
 
-    public static final int _traffic_NUM = 3000;
+    public static final int _traffic_NUM = 2000;
     public static final boolean BUILD = true;
 //    public static final boolean DELE = false;
 
@@ -25,7 +25,7 @@ public class TrafficManager {
     new created traffic will randomly select the user size according to 'minus_users'.
      */
     private int minus_users = 6;//denote the number of users that
-    private float control_probability = 0.8f;
+    private float control_probability = 0;
 
 
     static int traffic_counter = 0;

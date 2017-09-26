@@ -18,3 +18,7 @@ Note:
 1.The steps are: first, grouping; second, primary tree calculating and segments dividing; third, backup segment calculating;
 fourth, allocate resource.
 2.Don't consider adaptive spectrum allocation.
+3.When calculating backup segments, don't consider the sharing between different distributed trees of a MR. That is, when update graph,
+the cost of links don't be affected by other backup segments of another distributed tree of the same MR.
+4.In Distance-Adaptive Spectrum Allocation, we decide the modulation according to the longest distance of the branch, without considering
+the user number. So, in topology 'cost239', the BP of the case of 'distributed light-tree' is higher than that of the case with 'single light-tree'

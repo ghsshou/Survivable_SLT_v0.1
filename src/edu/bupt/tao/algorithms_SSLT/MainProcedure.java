@@ -20,19 +20,19 @@ public class MainProcedure {
     public int max_p_tree_num;
     public int max_b_tree_num;
     public String protection_flag;
-    static public String topo_file_name = "data/US_backbone_28";
+    static public String topo_file_name = "data/cost239";
     //how many data to record
-    private int no_record_num = 300;
+    protected int no_record_num = 100;
 
 
-    private Multicast_Graph multicast_graph;
+    protected Multicast_Graph multicast_graph;
     private XXX_Algo_2 xxx_algo_2;
-    private TrafficManager traffic_manager;
-    private Timer timer = new Timer();
-    private int success_num = 0;
-    private int tree_num = 0;
+    protected TrafficManager traffic_manager;
+    protected Timer timer = new Timer();
+    protected int success_num = 0;
+    protected int tree_num = 0;
     //about resource utilization recording
-    private double[] resource_utilization;
+    protected double[] resource_utilization;
 
     public double getFinal_resource_utilization() {
         return final_resource_utilization;
@@ -46,9 +46,9 @@ public class MainProcedure {
         return final_tree_num;
     }
 
-    double final_resource_utilization;
-    double final_blocking_probability;
-    int final_tree_num;
+    protected double final_resource_utilization;
+    protected double final_blocking_probability;
+    protected int final_tree_num;
 
 
 
@@ -60,6 +60,7 @@ public class MainProcedure {
 //
 //
 //    }
+    public MainProcedure(){}
     //for static traffic scenario.
     MainProcedure(int max_p_tree_num, int max_b_tree_num, String protection_flag, boolean distributed_or_not){
         this.multicast_graph = new Multicast_Graph("data/n6e9", false);
@@ -97,7 +98,7 @@ public class MainProcedure {
 
 
     }
-    private void topology_initialize(boolean distributed_or_not){
+    protected void topology_initialize(boolean distributed_or_not){
         Datacenter dc1 = new Datacenter(multicast_graph.get_vertex(0),100);
         Datacenter dc2 = new Datacenter(multicast_graph.get_vertex(3),200);
         Datacenter dc3 = new Datacenter(multicast_graph.get_vertex(8),200);
@@ -181,7 +182,7 @@ public class MainProcedure {
 
 
 
-    private DeleTrafficTask get_deletrafic_task(Multicast_Request t)
+    protected DeleTrafficTask get_deletrafic_task(Multicast_Request t)
     {
         return new DeleTrafficTask(t);
     }
@@ -200,7 +201,7 @@ public class MainProcedure {
         }
 
     }
-    private double get_avaerage(double[] data){
+    protected double get_avaerage(double[] data){
         double total = 0;
         for (double aData : data) {
             total += aData;

@@ -21,6 +21,7 @@ public class SpanningTree {
     int startSlots;
     int useSlots;
     int modulationLevel;
+    private double _weight = -1;
     public SpanningTree(){
         paths_of_tree = new ArrayList<>();
         counter ++;
@@ -48,6 +49,9 @@ public class SpanningTree {
     }
     public void add_path(Path path){
         this.paths_of_tree.add(path);
+        if(this._weight < path.get_weight()){
+            this._weight = path.get_weight();
+        }
     }
 
     public void setStartSlots(int startSlots) {
@@ -78,6 +82,10 @@ public class SpanningTree {
         return paths_of_tree;
     }
 
+    public void set_weight(double _weight) {
+        this._weight = _weight;
+    }
+
     public void setTotal_cost(double total_cost) {
         this.total_cost = total_cost;
     }
@@ -99,6 +107,10 @@ public class SpanningTree {
         }
         return long_dis;
 
+    }
+
+    public double get_weight() {
+        return _weight;
     }
 
     public void pritn_tree(){

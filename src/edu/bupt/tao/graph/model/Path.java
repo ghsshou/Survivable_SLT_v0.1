@@ -43,19 +43,19 @@ import java.util.Vector;
  */
 public class Path implements BaseElementWithWeight,Comparable<Path>
 {
-	List<BaseVertex> _vertex_list = new Vector<BaseVertex>();
-	static int counter = -1;
-	int id;
-	double _weight = -1;
-	double cost = -1;
-	int hop;
-	int startSlots;
-	int useSlots;
-	int modulationLevel;
+	private List<BaseVertex> _vertex_list = new Vector<BaseVertex>();
+	private static int counter = -1;
+	private int id;
+	private double _weight = -1;
+	private double cost = -1;
+	private int hop;
+	private int startSlots;
+	private int useSlots;
+	private int modulationLevel;
 	
-	double latency;	
-	static double switchLatency = 8;//the switch time,ms
-	static double transSpeed = 193.121; //in km
+	private double latency;
+	private static double switchLatency = 8;//the switch time,ms
+	public static double transSpeed = 193.121; //in km
 
 
 	public Path(){};
@@ -63,13 +63,16 @@ public class Path implements BaseElementWithWeight,Comparable<Path>
 	public Path(List<BaseVertex> _vertex_list, double _weight)
 	{
 		this._vertex_list = _vertex_list;
-		this.counter ++;
+		counter ++;
 		this.id = counter;
 		this._weight = _weight;
 		hop = _vertex_list.size() - 1;
 		latency = switchLatency * hop + _weight / transSpeed;
 	}
 
+	public void setId(int id) {
+		this.id = id;
+	}
 
 	public double get_weight()
 	{

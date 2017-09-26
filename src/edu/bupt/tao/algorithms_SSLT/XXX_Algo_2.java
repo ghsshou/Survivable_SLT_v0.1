@@ -529,84 +529,68 @@ public class XXX_Algo_2 {
 
     }
 
-    //update cost according the Equations,
+    //update cost according the Equations,????there is some problems in the results got before??
     private void update_graph(Multicast_Graph mg, int traffic_id, Path p, String protect_type) {
         //path p denotes the primary path
         for (Pair<Integer, Integer> pair : mg.get_pair_list()) {
             Resource res = mg.get_vertex_pair_weight_index().get(pair);
-            if(sharing.equals(protect_type)){
-                //firstly, we set the cost used by other primary paths to a small value
+            Resource res2 = mg.get_vertex_pair_weight_index().get(new Pair<>(pair.o2, pair.o1));
+            boolean flag = true;//denote the link (res) cost has been changed
+            boolean flag2 = true;//denote the link (res2) cost has been changed
 
-                if (res.occupied_slots_for_traffic(traffic_id) > 0) {
+            //we set the cost used by other backup paths of the same traffic to 0, actually, this is not the meaning of sharing
+            if(flag && res.contains_reserved_traffic(traffic_id)){
+                res.setCost(0);
+                flag = false;
+            }
+            if(flag2 && res2.contains_reserved_traffic(traffic_id)){
+                res2.setCost(0);
+                flag2 = false;
+            }
+            if(sharing.equals(protect_type)){
+                //we set the cost used by other primary paths to a small value, i.e. self-sharing
+                if(flag && res.occupied_slots_for_traffic(traffic_id) > 0){
                     res.setCost(epsilon);
+                    flag = false;
                 }
-                res = mg.get_vertex_pair_weight_index().get(new Pair<>(pair.o2, pair.o1));
-                if (res.occupied_slots_for_traffic(traffic_id) > 0) {
-                    res.setCost(epsilon);
+                if(flag2 && res2.occupied_slots_for_traffic(traffic_id) > 0){
+                    res2.setCost(epsilon);
+                    flag2 = false;
                 }
-                //secondly, we set the cost of other links
+                //we set the cost of other links, i.e. cross-sharing
                 Set<Integer> joint_paths = this.get_joint_bp_paths(traffic_id, p);
                 int slots_no = res.reserved_slots_except_joint(joint_paths);
                 double new_cost = res.getCost() - (double) slots_no / Resource.SLOTS_NO;
-                if (slots_no > 0) {
+                if (flag && slots_no > 0) {
                     res.setCost(new_cost);
                 }
-                res = mg.get_vertex_pair_weight_index().get(new Pair<>(pair.o2, pair.o1));
-                slots_no = res.reserved_slots_except_joint(joint_paths);
-                new_cost = res.getCost() - (double) slots_no / Resource.SLOTS_NO;
-                if (slots_no > 0) {
-                    res.setCost(new_cost);
+                int slots_no2 = res2.reserved_slots_except_joint(joint_paths);
+                double new_cost2 = res2.getCost() - (double) slots_no2 / Resource.SLOTS_NO;
+                if (flag2 && slots_no2 > 0) {
+                    res2.setCost(new_cost2);
                 }
-
             }
             else if("Full".equals(protect_type)){
-                //thirdly, we set the cost used by other backup paths of the same traffic to 0
-                res = mg.get_vertex_pair_weight_index().get(pair);
-                if (res.contains_reserved_traffic(traffic_id)) {
-                    res.setCost(0);
-                }
-                res = mg.get_vertex_pair_weight_index().get(new Pair<>(pair.o2, pair.o1));
-                if (res.reserved_slots_for_traffic(traffic_id) > 0) {
-                    res.setCost(0);
-                }
-                //finally, we set the cost of the nodes (v) in path p to INF, expect the src and the dst
-                //we put this procedure at last to avoid the cast where although we set the link cost to INF,
-                // it will be changed by other procedures.
-                //node-disjointed
-//        for (int i = 1; i < p.get_vertices().size() - 1; i++) {
-//            BaseVertex v = p.get_vertices().get(i);
-//            for (BaseVertex w : mg.get_adjacent_vertices(v)) {
-//                Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
-//                resource.setCost(Double.MAX_VALUE);
-//            }
-//            for (BaseVertex w : mg.get_precedent_vertices(v)) {
-//                Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<Integer, Integer>(v.get_id(), w.get_id()));
-//                resource.setCost(Double.MAX_VALUE);
-//            }
-//        }
-                //link-disjointed
-                for (int i = 0; i < p.get_vertices().size() - 1; i++) {
-                    BaseVertex v = p.get_vertices().get(i);
-                    BaseVertex w = p.get_vertices().get(i + 1);
-//            BaseVertex v = p.get_vertices().get(i);
-                    Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<>(v.get_id(), w.get_id()));
-                    resource.setCost(Double.MAX_VALUE);
-                    resource = mg.get_vertex_pair_weight_index().get(new Pair<>(w.get_id(), v.get_id()));
-                    resource.setCost(Double.MAX_VALUE);
-                }
-
-                //here is the case that the path has only two nodes(src and dst)
-                if (p.get_vertices().size() == 2) {
-                    LogRec.log.debug("Update graph!");
-//            LogRec.log.debug("src:" + p.get_src().get_id() + ",dst:" + p.get_dst().get_id());
-                    Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<>(p.get_src().get_id(), p.get_dst().get_id()));
-                    resource.setCost(Double.MAX_VALUE);
-                }
             }
-
-
+        }
+        //link-disjointed
+        for (int i = 0; i < p.get_vertices().size() - 1; i++) {
+            BaseVertex v = p.get_vertices().get(i);
+            BaseVertex w = p.get_vertices().get(i + 1);
+//            BaseVertex v = p.get_vertices().get(i);
+            Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<>(v.get_id(), w.get_id()));
+            resource.setCost(Double.MAX_VALUE);
+            resource = mg.get_vertex_pair_weight_index().get(new Pair<>(w.get_id(), v.get_id()));
+            resource.setCost(Double.MAX_VALUE);
         }
 
+        //here is the case that the path has only two nodes(src and dst)
+        if (p.get_vertices().size() == 2) {
+            LogRec.log.debug("Update graph!");
+//            LogRec.log.debug("src:" + p.get_src().get_id() + ",dst:" + p.get_dst().get_id());
+            Resource resource = mg.get_vertex_pair_weight_index().get(new Pair<>(p.get_src().get_id(), p.get_dst().get_id()));
+            resource.setCost(Double.MAX_VALUE);
+        }
 
     }
     //return tree number including primary and backup for calculating
@@ -874,7 +858,7 @@ public class XXX_Algo_2 {
             pair_2.add(new Pair<>(path_2.get_vertices().get(i), path_2.get_vertices().get(i + 1)));
             pair_2.add(new Pair<>(path_2.get_vertices().get(i + 1), path_2.get_vertices().get(i)));
         }
-        pair_1.retainAll(pair_1);
+        pair_1.retainAll(pair_2);
         return pair_1.isEmpty();
     }
 

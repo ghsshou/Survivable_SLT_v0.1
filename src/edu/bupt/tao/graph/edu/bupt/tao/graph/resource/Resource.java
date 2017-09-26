@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class Resource {
 
-    public static final int SLOTS_NO = 400;
+    public static final int SLOTS_NO = 500;
     public double weight;
     public double cost;//by Tao, 6/20/2017
     public Slot[] slots = new Slot[SLOTS_NO];
@@ -57,7 +57,7 @@ public class Resource {
         slots_empty_num = SLOTS_NO;
     }
 
-    //whether the slots are free (not reserved or occupied, i.e. slot.use_state = true) from ~ to ~
+    //whether the slots are free (no true reserved or occupied, i.e. slot.use_state = 1) from ~ to ~
     public boolean is_free_from_in(int start_slot, int required_slots) {
         boolean result = true;
         for (int j = start_slot; j < start_slot + required_slots; j++) {
@@ -84,6 +84,10 @@ public class Resource {
                     //if reserve
                     if (slot.traffic_reserve.keySet().contains(traffic_id)) {
                         slot.traffic_reserve.remove(traffic_id);
+                        if(slot.traffic_reserve.size() == 0){
+                            slot.setSlot_free();
+                            slots_empty_num ++;
+                        }
                     }
                 }
             }
@@ -212,15 +216,15 @@ public class Resource {
         return counter;
     }
 
-    public int reserved_slots_for_traffic(int traffic_id) {
-        int total = 0;
-        for (Slot slot : slots) {
-            if (!slot.isUse_state() && slot.getOccupy_type() == 0 && slot.traffic_reserve.containsKey(traffic_id)) {
-                total++;
-            }
-        }
-        return total;
-    }
+//    public int reserved_slots_for_traffic(int traffic_id) {
+//        int total = 0;
+//        for (Slot slot : slots) {
+//            if (!slot.isUse_state() && slot.getOccupy_type() == 0 && slot.traffic_reserve.containsKey(traffic_id)) {
+//                total++;
+//            }
+//        }
+//        return total;
+//    }
 
     public int occupied_slots_for_traffic(int traffic_id) {
         int total = 0;
@@ -233,7 +237,7 @@ public class Resource {
     }
 
     //reserved slots by other backup paths of other traffics, not including the ones whose primary path is
-    //not jointed with its protected one.
+    //jointed with its protected one.
     public int reserved_slots_except_joint(Set<Integer> jointed_path_id) {
         int total = 0;
         for (Slot slot : slots) {
@@ -249,6 +253,17 @@ public class Resource {
                 if (temp_int.isEmpty()) {
                     total++;
                 }
+            }
+        }
+        return total;
+    }
+
+    //calculate all reserved slots number
+    public int reserved_slots() {
+        int total = 0;
+        for (Slot slot : slots) {
+            if (!slot.isUse_state() && slot.getOccupy_type() == 0) {
+                total++;
             }
         }
         return total;
